@@ -24,14 +24,14 @@ machine with minor modifications.
 
 ### Downloading Python
 
-Before continuing, make sure you have [Homebrew](https://brew.sh/) installed --- a useful package
+Before continuing, make sure you have [Homebrew](https://brew.sh/) installed – a useful package
 manager for macOS.
 
 We'll begin with making sure we have the right version of Python installed. Run 
 ```
 $ brew install pyenv
 ```
-to install [pyenv](https://github.com/pyenv/pyenv) --- a Python version manager. This will let us run many Python
+to install [pyenv](https://github.com/pyenv/pyenv) – a Python version manager. This will let us run many Python
 installations on the same machine. Alternatively, you can use [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or a similar Python version manager.
 
 Refer to [.python-version](.python-version) for the required Python installed. Once you have pyenv
