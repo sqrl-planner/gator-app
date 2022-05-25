@@ -1,3 +1,5 @@
+from typing import Any
+
 import graphene
 from graphene_mongo import MongoengineObjectType
 

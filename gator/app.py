@@ -13,7 +13,7 @@ def create_app(settings_override: Any = None) -> Flask:
         settings_override: Override settings
     """
     app = Flask(__name__)
-    app.config.from_object('config.settings')
+    app.config.from_object('config.app_settings')
     if settings_override:
         app.config.update(settings_override)
 
