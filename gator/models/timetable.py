@@ -5,14 +5,12 @@ from enum import Enum
 from typing import Optional
 from functools import lru_cache
 
-
 from gator.extensions import db
 from gator.models.common import Time
 
 
 class MeetingDay(Enum):
     """A class representing the day of the week."""
-
     MONDAY = 'MO'
     TUESDAY = 'TU'
     WEDNESDAY = 'WE'
@@ -34,7 +32,6 @@ class SectionMeeting(db.EmbeddedDocument):
         assigned_room_2: A string representing the second assigned room for
             this meeting, or None if there is no second assigned room.
     """
-
     day: MeetingDay = db.EnumField(MeetingDay, required=True)
     start_time: Time = db.EmbeddedDocumentField(Time, required=True)
     end_time: Time = db.EmbeddedDocumentField(Time, required=True)
@@ -44,7 +41,6 @@ class SectionMeeting(db.EmbeddedDocument):
 
 class SectionTeachingMethod(Enum):
     """A class representing the teaching method for a section."""
-
     LECTURE = 'LEC'
     TUTORIAL = 'TUT'
     PRACTICAL = 'PRA'
@@ -52,7 +48,6 @@ class SectionTeachingMethod(Enum):
 
 class SectionDeliveryMode(Enum):
     """A class representing mode of delivery for a section."""
-
     CLASS = 'CLASS'
     ONLINE_SYNC = 'ONLSYNC'
     ONLINE_ASYNC = 'ONLASYNC'
@@ -72,7 +67,6 @@ class Instructor(db.EmbeddedDocument):
         first_name: The first name of this instructor.
         last_name: The last name of this instructor.
     """
-
     first_name: str = db.StringField(required=True)
     last_name: str = db.StringField(required=True)
 
@@ -98,7 +92,6 @@ class Section(db.EmbeddedDocument):
         enrolment_indicator: A string representing the enrollment indicator
             for this section, or None if there is no enrollment indicator.
     """
-
     teaching_method: Optional[SectionTeachingMethod] = db.EnumField(
         SectionTeachingMethod, null=True
     )
@@ -127,7 +120,6 @@ class Section(db.EmbeddedDocument):
 
 class CourseTerm(Enum):
     """The course term."""
-
     FIRST_SEMESTER = 'F'
     SECOND_SEMESTER = 'S'
     FULL_YEAR = 'Y'
@@ -135,7 +127,6 @@ class CourseTerm(Enum):
 
 class Campus(Enum):
     """University campus"""
-
     ST_GEORGE = 'UTSG'
     SCARBOROUGH = 'UTSC'
     MISSISSAUGA = 'UTM'
@@ -149,7 +140,6 @@ class Organisation(db.Document):
         code: A unique string representing this organisation.
         name: The full name of this organisation.
     """
-
     code: str = db.StringField(primary_key=True)
     name: str = db.StringField(required=True)
 
@@ -177,7 +167,6 @@ class Course(db.Document):
         web_timetable_instructions: Additional timetable information.
         delivery_instructions: Additional delivery instruction information.
     """
-
     id: str = db.StringField(primary_key=True)
     organisation: Organisation = db.ReferenceField('Organisation')
     code: str = db.StringField()
