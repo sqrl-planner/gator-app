@@ -7,11 +7,6 @@ itsdangerous<=2.0.1
 Flask-Cors==3.0.10
 flask-mongoengine
 
-graphql-server[flask]
-graphene
-graphene-mongo
-graphql_core
-
 pytest==6.2.5
 pytest-cov==3.0.0
 flake8==4.0.1

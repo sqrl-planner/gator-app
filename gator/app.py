@@ -17,9 +17,8 @@ def create_app(settings_override: Any = None) -> Flask:
     if settings_override:
         app.config.update(settings_override)
 
-    from gator import extensions, graphql
+    from gator import extensions
 
-    graphql.init_app(app)
     extensions.init_app(app)
 
     return app
