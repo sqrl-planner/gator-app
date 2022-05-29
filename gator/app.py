@@ -17,8 +17,12 @@ def create_app(settings_override: Any = None) -> Flask:
     if settings_override:
         app.config.update(settings_override)
 
-    from gator import extensions
+    # Register extensions with the app
+    from gator.extensions import db
+    db.init_app(app)
 
-    extensions.init_app(app)
+    # Register api with the app
+    from gator.api import api
+    api.init_app(app)
 
     return app
