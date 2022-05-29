@@ -206,7 +206,7 @@ class Session:
                 f'one of {{9, 5}}, not {session_code[-1]}')
         else:
             return Session(int(session_code[:4]),
-                                    int(session_code[-1]) == 5)
+                           int(session_code[-1]) == 5)
 
 
 class Course(db.Document):
