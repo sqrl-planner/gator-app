@@ -1,4 +1,5 @@
 """Helper functions and definitions for pagination."""
+from typing import Optional
 from flask_restx import reqparse
 from flask_mongoengine import QuerySet
 
@@ -22,8 +23,8 @@ reqparser.add_argument(
 )
 
 
-def paginate_query(queryset: QuerySet, page_size: int = 20, last_id: str = None) \
-        -> tuple[QuerySet, str]:
+def paginate_query(queryset: QuerySet, page_size: int = 20, last_id: Optional[str] = None) \
+    -> tuple[QuerySet, Optional[str]]:
     """Paginate a queryset.
 
     Args:
@@ -32,7 +33,8 @@ def paginate_query(queryset: QuerySet, page_size: int = 20, last_id: str = None)
         last_id: The id of the last item returned. If not specified, returns the first page.
 
     Returns:
-        A tuple containing the page of items and the last id of the page.
+        A tuple containing the queryset and the id of the last item returned. It is possible for
+        the last_id to be None, in which case the queryset will be empty.
     """
     if last_id is None:
         # Return the first page
@@ -42,6 +44,10 @@ def paginate_query(queryset: QuerySet, page_size: int = 20, last_id: str = None)
         page = queryset.filter(id__gt=last_id).limit(page_size)
 
     # Get the last id of the page
-    last_id = page.order_by('-id').first().id
+    last_element = page.order_by('-id').first()
+    if last_element is None:
+        last_id = None
+    else:
+        last_id = last_element.id
 
     return page, last_id
