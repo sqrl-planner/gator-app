@@ -28,7 +28,7 @@ def paginate_query(queryset: QuerySet, page_size: int = 20, last_id: Optional[st
     """Paginate a queryset.
 
     Args:
-        query: A query object.
+        query: A queryset object.
         page_size: The number of items to return per page.
         last_id: The id of the last item returned. If not specified, returns the first page.
 
