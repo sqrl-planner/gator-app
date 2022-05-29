@@ -22,7 +22,7 @@ def create_app(settings_override: Any = None) -> Flask:
     db.init_app(app)
 
     # Register api with the app
-    from gator.api import api
+    import gator.api as api
     api.init_app(app)
 
     return app
