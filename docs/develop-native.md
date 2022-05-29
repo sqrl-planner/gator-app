@@ -94,6 +94,6 @@ $ brew services restart mongodb-community
 ### Running the server
 To startup a local web server, run
 ```
-$ flask run --port 8000
+$ flask run --port 5000
 ```
 Modify the ``port`` argument based on the value set in the ``.env`` file.

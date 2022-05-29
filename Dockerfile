@@ -33,6 +33,6 @@ RUN if [ "${FLASK_ENV}" != "development" ]; then \
 
 RUN pip3 install --user --no-cache-dir .  # run setup.py
 
-EXPOSE 8000
+EXPOSE 5000
 
 CMD ["gunicorn", "-c", "python:config.gunicorn", "gator.app:create_app()"]
