@@ -4,6 +4,7 @@ import math
 from enum import Enum
 from typing import Optional
 from functools import lru_cache
+from dataclasses import dataclass
 
 from gator.extensions import db
 from gator.models.common import Time
@@ -146,6 +147,68 @@ class Organisation(db.Document):
     campus: Campus = db.EnumField(Campus, required=True)
 
 
+@dataclass
+class Session:
+    """A class representing a session of a calendar year.
+
+    Instance Attributes:
+        year: The year of the session.
+        summer: Whether this is a summer session. Defaults to False, meaning that this is a
+            fall/winter session.
+    """
+
+    year: int
+    summer: bool = False
+
+    @property
+    def code(self) -> str:
+        """
+        Return the session code for this Session.
+
+        The session code is a five-length string where the first four characters denote the session
+        year, and the last character denotes whether it is a fall/winter (9) or summer session (5).
+        For example, the code `20209` denotes the fall/winter session of 2020.
+
+        >>> Session(2020, summer=False).code
+        '20209'
+        >>> Session(1966, summer=True).code
+        '19665'
+        >>> Session(1, summer=False).code
+        '00019'
+        """
+        suffix = 5 if self.summer else 9
+        return f'{str(self.year).zfill(4)}{suffix}'
+
+    def __str__(self) -> str:
+        return self.code
+
+    @classmethod
+    def parse(cls, session_code: str) -> 'Session':
+        """Return an instance Session representing the given session code.
+        Raise a ValueError if the session code is not formatted properly.
+
+        >>> Session.parse('20205') == Session(year=2020, summer=True)
+        True
+        >>> Session.parse('00509') == Session(year=50, summer=False)
+        True
+        """
+        if len(session_code) != 5:
+            raise ValueError(
+                f'invalid session code ("{session_code}"): expected string of length 5'
+                f', not {len(session_code)}')
+        elif not session_code.isnumeric():
+            raise ValueError(
+                f'invalid session code ("{session_code}"): expected numeric string'
+            )
+        elif int(session_code[-1]) not in {9, 5}:
+            raise ValueError(
+                f'invalid session code ("{session_code}"): expected code to end in '
+                f'one of {{9, 5}}, not {session_code[-1]}')
+        else:
+            return Session(int(session_code[:4]),
+                                    int(session_code[-1]) == 5)
+
+
 class Course(db.Document):
     """A class representing a course.
 
@@ -157,8 +220,7 @@ class Course(db.Document):
         title: The title of this course.
         description: The description of this course.
         term: The term in which the course takes place.
-        session_code: The session in which the course takes place represented as a 5 character
-            numeric string.
+        session: The session in which the course takes place.
         sections: A list of sections available for this course.
         prerequisites: Prerequisties for this course.
         corequisites: Corequisites for this course.
@@ -209,6 +271,12 @@ class Course(db.Document):
         """Return the level of this course."""
         m = re.search(r'(?:[^\d]*)(\d+)', self.code)
         return int(math.floor(int(m.group(1)) / 100.0)) * 100
+
+    @property
+    @lru_cache
+    def session(self) -> Session:
+        """Return the session of this course."""
+        return Session.parse(self.session_code)
 
     def __str__(self):
         """Return a string representation of this course."""
