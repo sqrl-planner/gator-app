@@ -59,7 +59,7 @@ flake8
 
 #### Formatting the codebase
 ```
-autopep8
+autopep8 --in-place --recursive .
 ```
 
 #### Running tests
