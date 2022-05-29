@@ -1,2 +1,2 @@
-from gator.models import common
-from gator.models import timetable
+from gator.models import common  # noqa: F401
+from gator.models import timetable  # noqa: F401
