@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar, Iterator, Type, Union, Optional
 
-from gator.data.pipeline.transforms import DataTransform, DataTransformFn, Compose
+from gator.data.pipeline.transforms import DataTransformFn, Compose
 
 
 T = TypeVar('T')
