@@ -19,5 +19,4 @@ class Courses(Resource):
         """List all courses."""
         args = pagination_reqparser.parse_args(request)
         page, last_id = paginate_query(Course.objects, **args)
-        print(page)
         return page
