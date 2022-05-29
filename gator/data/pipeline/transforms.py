@@ -13,7 +13,7 @@ class DataTransform(ABC):
     @abstractmethod
     def transform(self, data: object) -> object:
         """Transform data from one form to another.
-        
+
         Args:
             data: The data to transform.
         """
@@ -25,9 +25,10 @@ class DataTransform(ABC):
 
 class Composition(DataTransform):
     """A data transform that composes other data transforms."""
+
     def __init__(self, transforms: list):
         """Create a new Composition.
-        
+
         Args:
             transforms: A list of data transforms to compose. The transforms
                 will be applied in the order they appear in the list.
@@ -38,7 +39,7 @@ class Composition(DataTransform):
 
     def transform(self, data: object) -> object:
         """Transform data by composing the data transforms in the composition.
-        
+
         Args:
             data: The data to transform.
         """
@@ -50,9 +51,10 @@ class Composition(DataTransform):
 class DecodeText(DataTransform):
     """A data transform that decodes text from a byte string.
     """
+
     def __init__(self, encoding: str = 'utf-8'):
         """Create a new DecodeText.
-        
+
         Args:
             encoding: The encoding to use when decoding the text.
         """
@@ -60,7 +62,7 @@ class DecodeText(DataTransform):
 
     def transform(self, data: bytes) -> str:
         """Decode text from a byte string.
-        
+
         Args:
             data: The byte string to decode.
         """
@@ -70,11 +72,11 @@ class DecodeText(DataTransform):
 class JsonToDict(DataTransform):
     """A data transform that converts JSON data to a Python dictionary.
     """
+
     def transform(self, data: Union[str, bytes, bytearray]) -> dict:
         """Convert JSON data to a Python dictionary.
-        
+
         Args:
             data: A string, bytes, or bytearray containing a JSON document.
         """
         return json.loads(data)
-        
