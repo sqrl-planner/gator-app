@@ -1,17 +1,21 @@
 """Built-in data transforms."""
 import json
-from typing import Union, Callable
 from abc import ABC, abstractmethod
+from typing import Union, Callable, Generic, TypeVar
 
 
-class DataTransform(ABC):
+T = TypeVar('T')
+U = TypeVar('U')
+
+
+class DataTransform(ABC, Generic[T, U]):
     """A transformation of data from one form to another.
 
     Note that this class is callable, meaning that it can be used as a
     function. Calling `trf.transform(data)` is equivalent to `trf(data)`.
     """
     @abstractmethod
-    def transform(self, data: object) -> object:
+    def transform(self, data: T) -> U:
         """Transform data from one form to another.
 
         Args:
@@ -19,12 +23,12 @@ class DataTransform(ABC):
         """
         raise NotImplementedError()
 
-    def __call__(self, data: object) -> object:
+    def __call__(self, data: T) -> U:
         return self.transform(data)
 
 
 # Type alias for data transform object or callable.
-DataTransformFn = Union[DataTransform, Callable[[object], object]]
+DataTransformFn = Union[DataTransform[T, U], Callable[[T], U]]
 
 
 class Compose(DataTransform):
@@ -52,32 +56,14 @@ class Compose(DataTransform):
         return data
 
 
-class DecodeText(DataTransform):
-    """A data transform that decodes text from a byte string.
-    """
-
-    def __init__(self, encoding: str = 'utf-8'):
-        """Create a new DecodeText.
-
-        Args:
-            encoding: The encoding to use when decoding the text.
-        """
-        self._encoding = encoding
-
-    def transform(self, data: bytes) -> str:
-        """Decode text from a byte string.
-
-        Args:
-            data: The byte string to decode.
-        """
-        return data.decode(self._encoding)
+JsonLoadable = Union[str, bytes, bytearray]
 
 
-class JsonToDict(DataTransform):
+class JsonToDict(DataTransform[JsonLoadable, dict]):
     """A data transform that converts JSON data to a Python dictionary.
     """
 
-    def transform(self, data: Union[str, bytes, bytearray]) -> dict:
+    def transform(self, data: JsonLoadable) -> dict:
         """Convert JSON data to a Python dictionary.
 
         Args:

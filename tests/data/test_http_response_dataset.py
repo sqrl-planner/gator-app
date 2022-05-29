@@ -18,6 +18,8 @@ LARGE_HTML_FULL_DATA = LARGE_HTML_CHAR * LARGE_HTML_SIZE
 ###############################################################################
 # Setup fixtures for mocking web requests.
 ###############################################################################
+
+
 def large_html_handler(request: Request) -> Response:
     """Write the large html in variable sized chunks."""
     def get_chunks() -> bytes:

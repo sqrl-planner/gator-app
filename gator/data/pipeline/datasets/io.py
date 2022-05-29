@@ -4,6 +4,7 @@ from typing import Any, Optional, Union
 
 import requests
 
+from gator.data.pipeline import transforms
 from gator.data.pipeline.datasets import Dataset
 
 
@@ -76,6 +77,12 @@ class HttpResponseDataset(Dataset):
         self._chunk_size = chunk_size
         self._decode_unicode = decode_unicode
         self._kwargs = kwargs
+
+    def json(self) -> Dataset:
+        """Return data as JSON. This is a convenience method that applies the
+        JsonToDict transform to the dataset.
+        """
+        return self.map(transforms.JsonToDict)
 
     def __iter__(self) -> bytes:
         """Iterate over the response of the HTTP request."""
