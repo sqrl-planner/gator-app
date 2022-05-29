@@ -11,4 +11,3 @@ def add_all_schemas_to_api(api: Api) -> None:
     """Add all schemas to the API."""
     for schema in ALL_SCHEMAS:
         api.add_model(schema.name, schema)
-        
