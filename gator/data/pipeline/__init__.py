@@ -1,12 +1,11 @@
 """Base classes for a datasets."""
-from abc import ABC
 from typing import Optional
 
 from data.pipeline.sources import DataSource
-from data.pipeline.transforms import DataTransform
+from data.pipeline.transforms import DataTransformFn, Compose
 
 
-class Dataset(ABC):
+class Dataset:
     """Base class for a dataset.
 
     In its most abstract form, a dataset consists of a data source and a
@@ -22,7 +21,7 @@ class Dataset(ABC):
     be anything.
     """
 
-    def __init__(self, source: DataSource, pipeline: Optional[DataTransform] = None):
+    def __init__(self, source: DataSource, pipeline: Optional[DataTransformFn] = None):
         """Create a new Dataset.
 
         Args:
@@ -33,6 +32,19 @@ class Dataset(ABC):
         """
         self._source = source
         self._pipeline = pipeline
+
+    def apply(self, fn: DataTransformFn) -> 'Dataset':
+        """Apply a data transform to the dataset.
+
+        Args:
+            fn: A data transform function. Can either be a callable or an
+                instance of `DataTransform`.
+
+        Returns:
+            A new dataset with the data transform applied.
+        """
+        new_trf = Compose([self._pipeline, fn])
+        return Dataset(self._source, new_trf)
 
     def get(self) -> object:
         """Get data from the dataset.

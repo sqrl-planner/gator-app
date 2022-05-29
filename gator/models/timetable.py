@@ -139,9 +139,11 @@ class Organisation(db.Document):
     Instance Attributes:
         code: A unique string representing this organisation.
         name: The full name of this organisation.
+        campus: The campus this organisation is located at.
     """
     code: str = db.StringField(primary_key=True)
     name: str = db.StringField(required=True)
+    campus: Campus = db.EnumField(Campus, required=True)
 
 
 class Course(db.Document):
