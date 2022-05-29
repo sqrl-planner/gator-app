@@ -1,4 +1,4 @@
-name: autopep8
+name: Format
 on: pull_request
 jobs:
   autopep8:
