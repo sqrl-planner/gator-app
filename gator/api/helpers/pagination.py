@@ -24,7 +24,7 @@ reqparser.add_argument(
 
 
 def paginate_query(queryset: QuerySet, page_size: int = 20, last_id: Optional[str] = None) \
-    -> tuple[QuerySet, Optional[str]]:
+        -> tuple[QuerySet, Optional[str]]:
     """Paginate a queryset.
 
     Args:
