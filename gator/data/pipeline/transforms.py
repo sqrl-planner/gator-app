@@ -1,6 +1,6 @@
 """Built-in data transforms."""
 import json
-from typing import Union
+from typing import Union, Callable
 from abc import ABC, abstractmethod
 
 
@@ -23,11 +23,15 @@ class DataTransform(ABC):
         return self.transform(data)
 
 
-class Composition(DataTransform):
+# Type alias for data transform object or callable.
+DataTransformFn = Union[DataTransform, Callable[[object], object]]
+
+
+class Compose(DataTransform):
     """A data transform that composes other data transforms."""
 
-    def __init__(self, transforms: list):
-        """Create a new Composition.
+    def __init__(self, transforms: list[DataTransformFn]):
+        """Create a new Compose transform.
 
         Args:
             transforms: A list of data transforms to compose. The transforms
@@ -44,7 +48,7 @@ class Composition(DataTransform):
             data: The data to transform.
         """
         for x in self._transforms:
-            data = x.transform(data)
+            data = x(data)
         return data
 
 
