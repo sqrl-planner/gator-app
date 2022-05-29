@@ -64,5 +64,5 @@ autopep8 --in-place --recursive .
 
 #### Running tests
 ````
-pytest tests/
+pytest
 ````
