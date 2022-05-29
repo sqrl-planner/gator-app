@@ -11,6 +11,7 @@ class DataSource(ABC):
 
     A data source is a source of data that can be collected.
     """
+
     def __init__(self, name: str):
         """Initialize the data source.
 
@@ -33,6 +34,7 @@ class LocalFileDataSource(DataSource):
     """A data source that reads from a file on the local filesystem. The
     file must exist.
     """
+
     def __init__(self, fp: Path):
         """Create a new LocalFileDataSource.
 
@@ -51,7 +53,7 @@ class LocalFileDataSource(DataSource):
 
 class RemoteFileDataSource(DataSource):
     """A data source that reads a file from the web using a GET request."""
-    
+
     def __init__(self, url: str, req_kwargs: Any = None):
         """Create a new RemoteFileDataSource.
 
