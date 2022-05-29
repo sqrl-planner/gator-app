@@ -15,14 +15,14 @@ EXAMPLE_FILE_DATA = b'abcdefghijklmnopqrstuvwxyz'
 def mock_byte_file(mocker: MockerFixture) -> None:
     """Fixture that mocks the `open` builtin with bytes data."""
     mocker.patch('builtins.open',
-                    mocker.mock_open(read_data=EXAMPLE_FILE_DATA))
+                 mocker.mock_open(read_data=EXAMPLE_FILE_DATA))
 
 
 @pytest.fixture
 def mock_text_file(mocker: MockerFixture) -> None:
     """Fixture that mocks the `open` builtin with text data."""
     mocker.patch('builtins.open',
-                    mocker.mock_open(read_data=EXAMPLE_FILE_DATA.decode()))
+                 mocker.mock_open(read_data=EXAMPLE_FILE_DATA.decode()))
 
 
 ###############################################################################
@@ -40,7 +40,8 @@ def test_rb_stream_1(mock_byte_file) -> None:
     """
     dataset = FileDataset('test.txt', chunk_size=2)
     assert list(dataset) == [EXAMPLE_FILE_DATA[i:i + 2]
-                                for i in range(0, len(EXAMPLE_FILE_DATA), 2)]
+                             for i in range(0, len(EXAMPLE_FILE_DATA), 2)]
+
 
 def test_rb_stream_2(mock_byte_file) -> None:
     """Test the FileDataset class in binary read mode, with streaming.
@@ -62,7 +63,8 @@ def test_r_stream_1(mock_text_file) -> None:
     """
     dataset = FileDataset('test.txt', chunk_size=2)
     assert list(dataset) == [EXAMPLE_FILE_DATA[i:i + 2].decode('utf-8')
-                                for i in range(0, len(EXAMPLE_FILE_DATA), 2)]
+                             for i in range(0, len(EXAMPLE_FILE_DATA), 2)]
+
 
 def test_r_stream_2(mock_text_file) -> None:
     """Test the FileDataset class on a text file, with streaming.

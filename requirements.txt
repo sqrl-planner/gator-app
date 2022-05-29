@@ -11,6 +11,8 @@ flask-restx==0.5.1
 pytest==6.2.5
 pytest-cov==3.0.0
 pytest-mock==3.7.0
+pytest-httpserver==1.0.4
+
 flake8==4.0.1
 black==20.8b1
 

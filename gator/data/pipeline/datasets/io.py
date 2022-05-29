@@ -54,7 +54,8 @@ class HttpResponseDataset(Dataset):
     """
 
     def __init__(self, url: str, method: str = 'GET', stream: bool = False,
-                 chunk_size: Optional[int] = None, **kwargs: Any) -> None:
+                 chunk_size: Optional[int] = None, decode_unicode: bool = False,
+                 **kwargs: Any) -> None:
         """Create a new HttpResponseDataset.
 
         Args:
@@ -64,6 +65,7 @@ class HttpResponseDataset(Dataset):
             chunk_size: The size of the chunks to yield in bytes. Only used if
                 `stream` is True. Use None to yield the chunks in whatever size
                 they come in.
+            decode_unicode: Whether to decode the response as unicode.
             **kwargs: Additional keyword arguments to pass to the
                 `requests.request` method. See the `requests` documentation for
                 more information.
@@ -72,6 +74,7 @@ class HttpResponseDataset(Dataset):
         self._method = method
         self._stream = stream
         self._chunk_size = chunk_size
+        self._decode_unicode = decode_unicode
         self._kwargs = kwargs
 
     def __iter__(self) -> bytes:
@@ -81,5 +84,5 @@ class HttpResponseDataset(Dataset):
 
         # Always use a chunk size of None if streaming is disabled
         chunk_size = self._chunk_size if self._stream else None
-        for chunk in response.iter_content(chunk_size):
+        for chunk in response.iter_content(chunk_size, self._decode_unicode):
             yield chunk
