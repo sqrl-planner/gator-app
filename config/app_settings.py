@@ -22,5 +22,7 @@ MONGODB_SETTINGS = {
         os.getenv('MONGO_INITDB_ROOT_PASSWORD', None)),
 }
 
+API_DOCS_URL = os.getenv('API_DOCS_URL', None) 
+
 # Whether to enforce payload validation by default when using the @api.expect() decorator.
 RESTX_VALIDATE = True
