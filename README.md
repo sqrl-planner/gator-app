@@ -38,11 +38,11 @@ Alterntively, you can run an instance locally or use a number of database provid
 
 #### Pulling and syncing data
 
-If your database is empty, you'll need course information to use gator. To pull the latest data from all dataset sources, run
-
+If your database is empty, you'll need timetable information to use gator. To pull the latest data from all dataset sources, in the Docker container run
 ```shell
 flask sync
 ```
+
 The Docker container will automaticlly sync the data on the first-run. You might find it useful to setup a cron job to periodically run this job in production.
 
 Currently, the dataset sources are hardcoded parameters in the [``config/settings.py``](https://github.com/sqrl-planner/sqrl-server/blob/main/config/settings.py) file. You must modify this file directly to customize the data sources.
