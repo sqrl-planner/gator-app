@@ -23,8 +23,8 @@ class Dataset(ABC):
     The dataset API is designed to be flexible. Pipeline usage follows the
     following pattern:
 
-    1. Create a dataset using the `Dataset.from_*` factory methods or by
-    implementing the `Dataset` interface.
+    1. Create a dataset or implementing your own by subclassing the `Dataset`
+       interface and implementing the `__iter__` method.
     2. Apply dataset transformations to preprocess the data.
     3. Iterate over the data.
 

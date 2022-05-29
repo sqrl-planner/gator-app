@@ -1,6 +1,6 @@
 """Datasets for performing I/O operations."""
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import requests
 
@@ -15,19 +15,19 @@ class FileDataset(Dataset):
     the entire file as a single chunk.
     """
 
-    def __init__(self, fp: Path, mode: str = 'rb',
+    def __init__(self, fp: Union[str, Path], mode: str = 'rb',
                  chunk_size: Optional[int] = None,
                  **kwargs: Any) -> None:
         """Create a new FileDataset.
 
         Args:
-            fp: The file path.
+            fp: The file path as a string or Path object.
             mode: The file mode.
             chunk_size: The size of the chunks to yield. If None, the entire
                 file is yielded as a single chunk.
             kwargs: Additional keyword arguments passed to the `open` builtin.
         """
-        self._fp = fp
+        self._fp = Path(fp)
         self._mode = mode
         self._chunk_size = chunk_size
         self._kwargs = kwargs
