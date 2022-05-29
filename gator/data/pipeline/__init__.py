@@ -19,8 +19,9 @@ class Dataset(ABC):
     Remark: Typically, final form refers to model objects defined in
     `gator.models` and raw form refers to data that is read from a data source.
     However, this is not a requirement, and the raw/final form of the data can
-    be anything.    
+    be anything.
     """
+
     def __init__(self, source: DataSource, pipeline: Optional[DataTransform] = None):
         """Create a new Dataset.
 

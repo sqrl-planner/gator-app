@@ -28,4 +28,3 @@ def init_app(app: Flask) -> None:
     # pattern without having to hardcode the url or use the app context.
     api._doc = app.config.get('API_DOCS_URL', '/docs/')
     api.init_app(app)
-    
