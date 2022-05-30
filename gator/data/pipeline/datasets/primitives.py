@@ -1,5 +1,5 @@
 """Primitive datasets."""
-from typing import Any, Iterator, Sequence, Type, Union, Optional
+from typing import Any, Iterator, Type, Union
 
 import gator.data.pipeline.datasets as datasets
 import gator.data.pipeline.transforms as transforms

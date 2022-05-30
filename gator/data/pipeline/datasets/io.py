@@ -4,7 +4,6 @@ from typing import Any, Optional, Union
 
 import requests
 
-from gator.data.pipeline import transforms
 from gator.data.pipeline.datasets import Dataset
 
 
