@@ -8,6 +8,7 @@ import gator.data.pipeline.datasets.primitives as primitives
 
 class ApplyDataset(datasets.Dataset):
     """A dataset that applies an operation to another dataset."""
+
     def __init__(self, dataset: datasets.Dataset,
                  transform: transforms.DataTransformFn) -> None:
         self._dataset = dataset
@@ -20,6 +21,7 @@ class ApplyDataset(datasets.Dataset):
 class MapDataset(primitives.ListDataset):
     """A dataset that applies an element-wise operation to another dataset.
     Note that this can only be used for list datasets."""
+
     def __init__(self, dataset: primitives.ListDataset,
                  transform: transforms.DataTransformFn) -> None:
         self._dataset = dataset

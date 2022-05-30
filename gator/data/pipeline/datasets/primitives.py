@@ -39,7 +39,7 @@ class ListDataset(datasets.Dataset):
         return list(self)
 
     def map(self, fn: Union[transforms.DataTransformFn,
-            Type[transforms.DataTransform]]) -> 'ListDataset':
+                            Type[transforms.DataTransform]]) -> 'ListDataset':
         """Applies a data transform element-wise to the dataset.
 
         Args:
@@ -127,4 +127,3 @@ class ListDataset(datasets.Dataset):
 #         and a value. Return a new dataset with key-value pairs.
 #         """
 #         return self.map(lambda d: list(d.items()))
-
