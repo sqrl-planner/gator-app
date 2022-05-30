@@ -31,7 +31,7 @@ def mock_text_file(mocker: MockerFixture) -> None:
 def test_rb_no_stream(mock_byte_file) -> None:
     """Test the FileDataset class in binary read mode, without streaming."""
     dataset = FileDataset('test.txt')
-    assert list(dataset) == [EXAMPLE_FILE_DATA]
+    assert dataset.get() == EXAMPLE_FILE_DATA
 
 
 def test_rb_stream_1(mock_byte_file) -> None:
@@ -39,7 +39,7 @@ def test_rb_stream_1(mock_byte_file) -> None:
     Use a chunk size of 2.
     """
     dataset = FileDataset('test.txt', chunk_size=2)
-    assert list(dataset) == [EXAMPLE_FILE_DATA[i:i + 2]
+    assert dataset.get() == [EXAMPLE_FILE_DATA[i:i + 2]
                              for i in range(0, len(EXAMPLE_FILE_DATA), 2)]
 
 
@@ -48,13 +48,13 @@ def test_rb_stream_2(mock_byte_file) -> None:
     Use a chunk size larger than the file size.
     """
     dataset = FileDataset('test.txt', chunk_size=len(EXAMPLE_FILE_DATA) + 1)
-    assert list(dataset) == [EXAMPLE_FILE_DATA]
+    assert dataset.get() == [EXAMPLE_FILE_DATA]
 
 
 def test_r_no_stream(mock_text_file) -> None:
     """Test the FileDataset class on a text file, without streaming."""
     dataset = FileDataset('test.txt')
-    assert list(dataset) == [EXAMPLE_FILE_DATA.decode('utf-8')]
+    assert dataset.get() == EXAMPLE_FILE_DATA.decode('utf-8')
 
 
 def test_r_stream_1(mock_text_file) -> None:
@@ -62,7 +62,7 @@ def test_r_stream_1(mock_text_file) -> None:
     Use a chunk size of 2.
     """
     dataset = FileDataset('test.txt', chunk_size=2)
-    assert list(dataset) == [EXAMPLE_FILE_DATA[i:i + 2].decode('utf-8')
+    assert dataset.get() == [EXAMPLE_FILE_DATA[i:i + 2].decode('utf-8')
                              for i in range(0, len(EXAMPLE_FILE_DATA), 2)]
 
 
@@ -71,4 +71,4 @@ def test_r_stream_2(mock_text_file) -> None:
     Use a chunk size larger than the file size.
     """
     dataset = FileDataset('test.txt', chunk_size=len(EXAMPLE_FILE_DATA) + 1)
-    assert list(dataset) == [EXAMPLE_FILE_DATA.decode('utf-8')]
+    assert dataset.get() == [EXAMPLE_FILE_DATA.decode('utf-8')]

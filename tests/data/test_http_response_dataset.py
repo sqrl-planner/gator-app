@@ -59,7 +59,7 @@ def test_get_no_stream_1(http_server: HTTPServer) -> None:
                                   stream=False,
                                   chunk_size=None)
 
-    assert list(dataset) == [SMALL_HTML]
+    assert dataset.get() == SMALL_HTML
 
 
 def test_get_no_stream_2(http_server: HTTPServer) -> None:
@@ -71,7 +71,7 @@ def test_get_no_stream_2(http_server: HTTPServer) -> None:
                                   stream=False,
                                   chunk_size=32)
 
-    assert list(dataset) == [SMALL_HTML]
+    assert dataset.get() == SMALL_HTML
 
 
 def test_get_stream_1(http_server: HTTPServer) -> None:
@@ -86,7 +86,7 @@ def test_get_stream_1(http_server: HTTPServer) -> None:
     # The large page is too large to fit in memory, so we expect to get
     # the chunks in a generator. Since chunk_size is None, the chunk size
     # will be variable, depending on what server is returning.
-    chunks = list(dataset)
+    chunks = dataset.get()
     total_size = sum(len(chunk) for chunk in chunks)
     response = b''.join(chunks)
 
@@ -107,7 +107,7 @@ def test_get_stream_2(http_server: HTTPServer) -> None:
     # the chunks in batches of 32 bytes.
     num_chunks_expected = math.ceil(LARGE_HTML_SIZE / dataset._chunk_size)
 
-    chunks = list(dataset)
+    chunks = dataset.get()
     assert len(chunks) == num_chunks_expected
 
     total_size = sum(len(chunk) for chunk in chunks)
@@ -124,7 +124,7 @@ def test_post(http_server: HTTPServer) -> None:
                                   stream=False,
                                   chunk_size=None)
 
-    assert list(dataset) == [b'OK']
+    assert dataset.get() == b'OK'
 
 
 def test_decode_unicode(http_server: HTTPServer) -> None:
@@ -136,4 +136,4 @@ def test_decode_unicode(http_server: HTTPServer) -> None:
                                   chunk_size=None,
                                   decode_unicode=True)
 
-    assert list(dataset) == [SMALL_HTML.decode('utf-8')]
+    assert dataset.get() == SMALL_HTML.decode('utf-8')
