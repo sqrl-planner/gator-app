@@ -33,17 +33,19 @@ class FileDataset(Dataset):
         self._chunk_size = chunk_size
         self._kwargs = kwargs
 
-    def __iter__(self) -> Any:
+    def get(self) -> Any:
         """Yield the file contents."""
         with open(self._fp, self._mode, **self._kwargs) as f:
             if self._chunk_size is None:
-                yield f.read()
+                return f.read()
             else:
+                chunks = []
                 while True:
                     chunk = f.read(self._chunk_size)
                     if not chunk:
                         break
-                    yield chunk
+                    chunks.append(chunk)
+                return chunks
 
 
 class HttpResponseDataset(Dataset):
@@ -79,17 +81,18 @@ class HttpResponseDataset(Dataset):
         self._kwargs = kwargs
 
     def json(self) -> Dataset:
-        """Return data as JSON. This is a convenience method that applies the
-        JsonToDict transform to the dataset.
-        """
-        return self.map(transforms.JsonToDict)
+        """Return data as JSON."""
+        # return JsonDataset(self)
 
-    def __iter__(self) -> bytes:
+    def get(self) -> bytes:
         """Iterate over the response of the HTTP request."""
         response = requests.request(self._method, self._url,
                                     stream=self._stream, **self._kwargs)
 
         # Always use a chunk size of None if streaming is disabled
         chunk_size = self._chunk_size if self._stream else None
-        for chunk in response.iter_content(chunk_size, self._decode_unicode):
-            yield chunk
+        chunks = list(response.iter_content(chunk_size, self._decode_unicode))
+        if not self._stream:
+            return chunks[0]
+        else:
+            return chunks
