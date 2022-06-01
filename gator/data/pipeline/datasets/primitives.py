@@ -13,7 +13,8 @@ class IterableDataset(datasets.Dataset, ABC):
         raise NotImplementedError
 
     def map(self, fn: Union[transforms.DataTransformFn,
-                            Type[transforms.DataTransform]]) -> 'MapDataset':
+                            Type[transforms.DataTransform]]) \
+            -> 'MapDataset':  # noqa: F821
         """Applies a data transform element-wise to the dataset.
 
         Args:
@@ -33,7 +34,7 @@ class IterableDataset(datasets.Dataset, ABC):
         import gator.data.pipeline.datasets.ops as ops
         return ops.MapDataset(self, fn)
 
-    def take(self, n: int) -> 'TakeDataset':
+    def take(self, n: int) -> 'TakeDataset':  # noqa: F821
         """Return the first n elements of the dataset."""
         import gator.data.pipeline.datasets.ops as ops
         return ops.TakeDataset(self, n)
@@ -129,7 +130,8 @@ class DictDataset(datasets.Dataset):
         import gator.data.pipeline.datasets.ops as ops
         return ops.ExtractKeysDataset(self, keys, defaults)
 
-    def extract_key(self, key: Any, default: Any = None) -> 'Dataset':
+    def extract_key(self, key: Any, default: Any = None) \
+            -> 'Dataset':  # noqa: F821
         """Assume that this dataset consists of dictionary elements. Extract
         the value of the specified key from every dictionary element so that
         the new dataset elements are a single value corresponding to the
