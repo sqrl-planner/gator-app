@@ -80,7 +80,10 @@ class HttpResponseDataset(Dataset):
         self._kwargs = kwargs
 
     def json(self) -> Dataset:
-        """Return data as JSON."""
+        """Return the data as JSON. This will read the entire response into
+        memory, so it is not recommended to use this method if streaming is
+        required.
+        """
         # return JsonDataset(self)
 
     def get(self) -> bytes:
