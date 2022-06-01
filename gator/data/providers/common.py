@@ -12,6 +12,7 @@ class TimetableDataset(Dataset):
     Instance Attributes:
         session: The session for which the timetable data is provided.
     """
+
     def __init__(self, session: Optional[Union[Session, str]] = None) -> None:
         """Initialise an ArtsciTimetableAPI.
 
