@@ -79,18 +79,20 @@ class HttpResponseDataset(Dataset):
         self._decode_unicode = decode_unicode
         self._kwargs = kwargs
 
-    def json(self) -> Dataset:
+    def json(self) -> 'DictDataset':  # noqa: F821
         """Return the data as JSON. This will read the entire response into
         memory, so it is not recommended to use this method if streaming is
         required.
         """
-        # return JsonDataset(self)
+        from gator.data.pipeline.datasets.primitives import (
+            DictDataset, LambdaDataset
+        )
+
+        return DictDataset(LambdaDataset(lambda: self._do_request().json()))
 
     def get(self) -> bytes:
         """Iterate over the response of the HTTP request."""
-        response = requests.request(self._method, self._url,
-                                    stream=self._stream, **self._kwargs)
-
+        response = self._do_request()
         # Always use a chunk size of None if streaming is disabled
         chunk_size = self._chunk_size if self._stream else None
         chunks = list(response.iter_content(chunk_size, self._decode_unicode))
@@ -98,3 +100,7 @@ class HttpResponseDataset(Dataset):
             return chunks[0]
         else:
             return chunks
+
+    def _do_request(self) -> requests.Response:
+        return requests.request(self._method, self._url,
+                                stream=self._stream, **self._kwargs)
