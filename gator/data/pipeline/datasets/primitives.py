@@ -6,6 +6,16 @@ import gator.data.pipeline.datasets as datasets
 import gator.data.pipeline.transforms as transforms
 
 
+class LambdaDataset(datasets.Dataset):
+    """A dataset that just calls a function."""
+
+    def __init__(self, fn: callable) -> None:
+        self._fn = fn
+
+    def get(self) -> Any:
+        return self._fn()
+
+
 class IterableDataset(datasets.Dataset, ABC):
     """A dataset that is iterable."""
     @abstractmethod
