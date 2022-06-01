@@ -13,7 +13,7 @@ class IterableDataset(datasets.Dataset, ABC):
         raise NotImplementedError
 
     def map(self, fn: Union[transforms.DataTransformFn,
-            Type[transforms.DataTransform]]) -> 'MapDataset':
+                            Type[transforms.DataTransform]]) -> 'MapDataset':
         """Applies a data transform element-wise to the dataset.
 
         Args:

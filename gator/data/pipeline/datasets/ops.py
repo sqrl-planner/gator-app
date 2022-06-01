@@ -52,6 +52,7 @@ class TakeDataset(primitives.IterableDataset):
 
 class ExtractKeysDataset(primitives.ListDataset):
     """A dataset that extracts the keys from a dictionary dataset."""
+
     def __init__(self, dataset: primitives.DictDataset, keys: list[Any], defaults: dict) -> None:
         self._dataset = dataset
         self._keys = keys
@@ -65,6 +66,7 @@ class ExtractKeysDataset(primitives.ListDataset):
 
 class KVPairsDataset(primitives.ListDataset):
     """A dataset that extracts the keys and values from a dictionary dataset."""
+
     def __init__(self, dataset: primitives.DictDataset) -> None:
         self._dataset = dataset
 
@@ -72,4 +74,3 @@ class KVPairsDataset(primitives.ListDataset):
         d = self._dataset.get()
         for k, v in d.items():
             yield k, v
-
