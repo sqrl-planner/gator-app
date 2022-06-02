@@ -7,10 +7,11 @@ from bs4 import BeautifulSoup
 
 
 from gator.models.timetable import (
-    Session, Organisation
+    Session, Organisation, Campus
 )
 from gator.data.pipeline.datasets import Dataset
 from gator.data.pipeline.datasets.io import HttpResponseDataset
+
 from gator.data.providers.common import TimetableDataset
 
 
@@ -51,6 +52,12 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         """
         super().__init__(session=session)
         self._organisations = self._get_all_organisations()
+
+
+    def get(self) -> list:
+        """Return a list of all the courses in the Arts and Science
+        Faculty of Arts and Science.
+        """
 
     @classmethod
     def _get_latest_session(cls, verify: bool = False) -> Session:
@@ -99,11 +106,20 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         objects. Raise a ValueError if the organisations could not be
         retrieved. Note that this does NOT mutate the database.
         """
-        dataset = HttpResponseDataset(f'{cls.API_URL}/orgs').json()
-        # TODO: Add validation rules to the dataset pipeline
-        # It might look something like this:
-        # dataset = dataset.with_validation_rules(FunctionalValidator(
-        #     lambda x: 'orgs' in x,
-        #     'Failed to find organisations in response'
-        # ))
-        dataset = dataset.extract_key('orgs').kv_pairs().map(Organisation.parse)
+        # Response is a JSON object of the form:
+        #   { 'orgs': { 'code': 'name', ... }, ... }
+        # where 'code' is the department code and 'name' is the department name.
+        dataset = HttpResponseDataset(
+            f'{cls.API_URL}/orgs',
+            headers=cls.DEFAULT_HEADERS
+        ).json()
+
+        def _org_parse(kv_pair: tuple[str, str]) -> Organisation:
+            """Parse a single organisation from the API response."""
+            code, name = kv_pair
+            return Organisation(code=code, name=name, campus=Campus.ST_GEORGE)
+
+        # Convert the response to a dataset of sqrl.models.Organisation objects
+        dataset = dataset.extract_key('orgs').as_dict().kv_pairs().map(_org_parse)
+        return dataset
+

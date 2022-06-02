@@ -50,3 +50,23 @@ class Dataset(ABC):
 
         import gator.data.pipeline.datasets.ops as ops
         return ops.ApplyDataset(self, fn)
+
+    def as_list(self) -> 'ListDataset':  # noqa: F821
+        """Cast the dataset to a list dataset. NOTE: Depending on the
+        underlying data in this dataset, this may not be a valid operation.
+
+        Returns:
+            A list dataset.
+        """
+        import gator.data.pipeline.datasets.primitives as primitives
+        return primitives.ListDataset(self)
+
+    def as_dict(self) -> 'DictDataset':  # noqa: F821
+        """Cast the dataset to a dictionary dataset. NOTE: Depending on the
+        underlying data in this dataset, this may not be a valid operation.
+
+        Returns:
+            A dictionary dataset.
+        """
+        import gator.data.pipeline.datasets.primitives as primitives
+        return primitives.DictDataset(self)

@@ -31,6 +31,9 @@ class MapDataset(primitives.IterableDataset):
     def __iter__(self) -> Iterator:
         return map(self._transform, self._dataset)
 
+    def get(self) -> Any:
+        return list(self)
+
 
 class TakeDataset(primitives.IterableDataset):
     """A dataset that takes a number of elements from an iterable dataset."""

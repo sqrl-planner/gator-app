@@ -50,7 +50,7 @@ class IterableDataset(datasets.Dataset, ABC):
         return ops.TakeDataset(self, n)
 
 
-class ListDataset(datasets.Dataset):
+class ListDataset(IterableDataset):
     """A dataset that consists of a series of elements in ordered form.
 
     List datasets are iterable, meaning that they can be used as a sequence.
