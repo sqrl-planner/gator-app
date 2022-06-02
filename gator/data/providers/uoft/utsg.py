@@ -57,8 +57,7 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         organisations = self._get_all_organisations()
         self._courses = organisations.map(
             lambda org: self._get_courses_in_organisation(org)
-        )
-        # TODO: Flatten the courses list
+        ).flatten()
 
     def get(self) -> list:
         """Return a list of all the courses in the Arts and Science

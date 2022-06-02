@@ -16,13 +16,41 @@ class LambdaDataset(datasets.Dataset):
         return self._fn()
 
 
-class IterableDataset(datasets.Dataset, ABC):
-    """A dataset that is iterable."""
-    @abstractmethod
+class ListDataset(datasets.Dataset):
+    """A dataset that consists of a series of elements in ordered form.
+
+    List datasets are iterable, meaning that they can be used as a sequence.
+    Iterating over a list dataset will yield the elements lazily, whereas
+    calling the `get` method will return the entire data at once.
+    """
+    # Private Instance Attributes:
+    #   _data: The data contained in this dataset.
+    _data: Union[list, 'ListDataset']
+
+    def __init__(self, data: Union[Any, list[Any]]) -> None:
+        """Create a new list dataset.
+
+        Args:
+            data: The data contained in this dataset. If a list or an iterable
+                dataset, the data will be used as-is. Otherwise, the data will
+                be converted to a list (by wrapping it in a list).
+        """
+        if not isinstance(data, (list, self.__class__)):
+            data = [data]
+        self._data = data
+
     def __iter__(self) -> Iterator:
-        raise NotImplementedError
+        """Return an iterator over the elements of the dataset. Datasets
+        will be evaluated through a `get` method call.
+        """
+        if isinstance(self._data, self.__class__):
+            return self._data.__iter__()
+        else:
+            for x in self._data:
+                yield datasets.evaluate(x)
 
     def get(self) -> Any:
+        """Return the entire dataset as a single object."""
         return list(self)
 
     def map(self, fn: Union[transforms.DataTransformFn,
@@ -51,40 +79,6 @@ class IterableDataset(datasets.Dataset, ABC):
         """Return the first n elements of the dataset."""
         import gator.data.pipeline.datasets.ops as ops
         return ops.TakeDataset(self, n)
-
-
-class ListDataset(IterableDataset):
-    """A dataset that consists of a series of elements in ordered form.
-
-    List datasets are iterable, meaning that they can be used as a sequence.
-    Iterating over a list dataset will yield the elements lazily, whereas
-    calling the `get` method will return the entire data at once.
-    """
-    # Private Instance Attributes:
-    #   _data: The data contained in this dataset.
-    _data: Union[list, IterableDataset]
-
-    def __init__(self, data: Union[Any, list[Any]]) -> None:
-        """Create a new list dataset.
-
-        Args:
-            data: The data contained in this dataset. If a list or an iterable
-                dataset, the data will be used as-is. Otherwise, the data will
-                be converted to a list (by wrapping it in a list).
-        """
-        if not isinstance(data, (list, IterableDataset)):
-            data = [data]
-        self._data = data
-
-    def __iter__(self) -> Iterator:
-        """Return an iterator over the elements of the dataset. Datasets
-        will be evaluated through a `get` method call.
-        """
-        if isinstance(self._data, IterableDataset):
-            return self._data.__iter__()
-        else:
-            for x in self._data:
-                yield datasets.evaluate(x)
 
     def at(self, index: int) -> datasets.Dataset:
         """Return the element at the specified index."""

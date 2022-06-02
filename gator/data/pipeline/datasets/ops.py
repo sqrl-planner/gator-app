@@ -18,12 +18,12 @@ class ApplyDataset(datasets.Dataset):
         return self._fn(self._dataset.get())
 
 
-class MapDataset(primitives.IterableDataset):
+class MapDataset(primitives.ListDataset):
     """A dataset that applies an element-wise operation to another dataset.
     Note that this can only be used for iterable datasets.
     """
 
-    def __init__(self, dataset: primitives.IterableDataset,
+    def __init__(self, dataset: primitives.ListDataset,
                  transform: transforms.DataTransformFn) -> None:
         self._dataset = dataset
         self._transform = transform
@@ -34,10 +34,10 @@ class MapDataset(primitives.IterableDataset):
             yield datasets.evaluate(y)
 
 
-class TakeDataset(primitives.IterableDataset):
+class TakeDataset(primitives.ListDataset):
     """A dataset that takes a number of elements from an iterable dataset."""
 
-    def __init__(self, dataset: primitives.IterableDataset,
+    def __init__(self, dataset: primitives.ListDataset,
                  num: int) -> None:
         self._dataset = dataset
         self._num = num
@@ -79,10 +79,10 @@ class KVPairsDataset(primitives.ListDataset):
             yield k, v
 
 
-class FlattenDataset(primitives.IterableDataset):
+class FlattenDataset(primitives.ListDataset):
     """A dataset that flattens an iterable dataset."""
 
-    def __init__(self, dataset: primitives.IterableDataset) -> None:
+    def __init__(self, dataset: primitives.ListDataset) -> None:
         self._dataset = dataset
 
     def __iter__(self) -> Iterator:
@@ -90,7 +90,7 @@ class FlattenDataset(primitives.IterableDataset):
 
     @staticmethod
     def _flatten(x: Any) -> Any:
-        if isinstance(x, (list, primitives.IterableDataset)):
+        if isinstance(x, (list, primitives.ListDataset)):
             for y in datasets.evaluate(x):
                 yield from FlattenDataset._flatten(y)
         else:
