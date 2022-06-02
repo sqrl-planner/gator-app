@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 
 from gator.models.timetable import (
-    Session, Organisation, Campus
+    Session, Organisation, Campus, Course
 )
 from gator.data.pipeline.datasets import Dataset
 from gator.data.pipeline.datasets.io import HttpResponseDataset
@@ -51,13 +51,26 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
                 code.
         """
         super().__init__(session=session)
-        self._organisations = self._get_all_organisations()
-
+        organisations = self._get_all_organisations()
+        self._courses = organisations.map(lambda org: self._get_courses_in_organisation(org.code))
 
     def get(self) -> list:
         """Return a list of all the courses in the Arts and Science
         Faculty of Arts and Science.
         """
+        return self._courses.get()
+
+    def _get_courses_in_organisation(
+            self, organisation_code: str) -> list[Course]:
+        """Return all the courses belonging to the given organisation as a list of
+        Course objects.
+
+        Args:
+            organisation_code: The code of the organisation.
+        """
+        endpoint_url = f'{self.API_URL}/{self.session.code}/courses?org={organisation_code}'
+        courses = HttpResponseDataset(endpoint_url, headers=self.DEFAULT_HEADERS).json()
+        return courses
 
     @classmethod
     def _get_latest_session(cls, verify: bool = False) -> Session:

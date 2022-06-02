@@ -22,6 +22,9 @@ class IterableDataset(datasets.Dataset, ABC):
     def __iter__(self) -> Iterator:
         raise NotImplementedError
 
+    def get(self) -> Any:
+        return list(self)
+
     def map(self, fn: Union[transforms.DataTransformFn,
                             Type[transforms.DataTransform]]) \
             -> 'MapDataset':  # noqa: F821
@@ -81,14 +84,7 @@ class ListDataset(IterableDataset):
             return self._data.__iter__()
         else:
             for x in self._data:
-                if isinstance(x, datasets.Dataset):
-                    yield x.get()
-                else:
-                    yield x
-
-    def get(self) -> Any:
-        """Return the data contained in this dataset."""
-        return list(self)
+                return datasets.evaluate(x)
 
     def at(self, index: int) -> datasets.Dataset:
         """Return the element at the specified index."""
@@ -111,10 +107,7 @@ class DictDataset(datasets.Dataset):
 
     def get(self) -> dict:
         """Return the data contained in this dataset."""
-        if isinstance(self._data, datasets.Dataset):
-            return self._data.get()
-        else:
-            return self._data
+        return datasets.evaluate(self._data)
 
     def extract_keys(self, keys: list[Any],
                      defaults: Optional[Union[dict, Any]] = None) \

@@ -29,10 +29,9 @@ class MapDataset(primitives.IterableDataset):
         self._transform = transform
 
     def __iter__(self) -> Iterator:
-        return map(self._transform, self._dataset)
-
-    def get(self) -> Any:
-        return list(self)
+        for x in self._dataset:
+            y = self._transform(datasets.evaluate(x))
+            yield datasets.evaluate(y)
 
 
 class TakeDataset(primitives.IterableDataset):
@@ -47,8 +46,9 @@ class TakeDataset(primitives.IterableDataset):
         # Takes the first num elements from the iterable dataset
         # or until the iterable dataset is exhausted
         try:
+            it = iter(self._dataset)
             for _ in range(self._num):
-                yield next(self._dataset)
+                yield next(it)
         except StopIteration:
             pass
 

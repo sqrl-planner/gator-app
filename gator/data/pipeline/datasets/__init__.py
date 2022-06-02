@@ -70,3 +70,13 @@ class Dataset(ABC):
         """
         import gator.data.pipeline.datasets.primitives as primitives
         return primitives.DictDataset(self)
+
+
+def evaluate(x: Any) -> Any:
+    """Rollout a dataset. Return the data contained in the dataset, or the
+    input itself if it is not a dataset.
+    """
+    if isinstance(x, Dataset):
+        return evaluate(x.get())
+    else:
+        return x
