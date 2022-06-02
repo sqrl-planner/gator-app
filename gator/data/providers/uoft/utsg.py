@@ -5,13 +5,17 @@ from typing import Optional, Union
 import requests
 from bs4 import BeautifulSoup
 
-
 from gator.models.timetable import (
-    Session, Organisation
+    Session, Campus, Organisation, Instructor,
+    Course, CourseTerm,
+    Section, SectionMeeting, SectionTeachingMethod, SectionDeliveryMode,
+    MeetingDay, Time
 )
 from gator.data.pipeline.datasets import Dataset
 from gator.data.pipeline.datasets.io import HttpResponseDataset
+
 from gator.data.providers.common import TimetableDataset
+from gator.data.utils import nullable_convert, int_or_none
 
 
 class UtsgArtsciTimetableDataset(TimetableDataset):
@@ -50,7 +54,122 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
                 code.
         """
         super().__init__(session=session)
-        self._organisations = self._get_all_organisations()
+        organisations = self._get_all_organisations()
+        self._courses = organisations.map(
+            lambda org: self._get_courses_in_organisation(org)
+        ).flatten()
+
+    def get(self) -> list:
+        """Return a list of all the courses in the Arts and Science
+        Faculty of Arts and Science.
+        """
+        return self._courses.get()
+
+    def _get_courses_in_organisation(
+            self, org: Organisation) -> list[Course]:
+        """Return all the courses belonging to the given organisation as a list of
+        Course objects.
+
+        Args:
+            org: The Organisation object to get courses for.
+        """
+        endpoint_url = f'{self.API_URL}/{self.session.code}/courses?org={org.code}'
+        courses = HttpResponseDataset(endpoint_url, headers=self.DEFAULT_HEADERS).json()
+        courses = courses.kv_pairs().map(lambda pair: self._parse_course(org, pair[1]))
+        return courses
+
+    def _parse_course(self, org: Organisation, payload: dict) -> Course:
+        """Return an instance of a Course representing the course given by the payload."""
+        # Full code is in the format <code>-<term>-<session>. For example,
+        # MAT137Y1-F-20219
+        full_code = '{}-{}-{}'.format(payload['code'],
+                                      payload['section'], payload['session'])
+        return Course(
+            id=full_code,
+            organisation=org,
+            code=payload['code'],
+            title=payload['courseTitle'],
+            description=payload['courseDescription'],
+            term=CourseTerm(payload['section']),
+            session_code=payload['session'],
+            sections=[self._parse_section(x)
+                      for x in payload['meetings'].values()],
+            prerequisites=payload['prerequisite'],
+            corequisites=payload['corequisite'],
+            exclusions=payload['exclusion'],
+            recommended_preparation=payload['recommendedPreparation'],
+            breadth_categories=payload['breadthCategories'],
+            distribution_categories=payload['distributionCategories'],
+            web_timetable_instructions=payload['webTimetableInstructions'],
+            delivery_instructions=payload['deliveryInstructions'],
+            campus=Campus.ST_GEORGE,
+        )
+
+    def _parse_section(self, payload: dict) -> Section:
+        """Return an instance of a Section representing the given payload."""
+        # Parse instructors
+        if (instructors := payload.get('instructors', [])) == []:
+            # Replace empty list with empty dict for consistency
+            instructors = {}
+        instructors = [self._parse_instructor(x) for x in instructors.values()]
+        # Parse meetings
+        if (schedule := payload.get('schedule', [])) == []:
+            # Replace empty list with empty dict for consistency
+            schedule = {}
+        meetings = self._parse_schedule(schedule)
+        # Construct section object
+        return Section(
+            teaching_method=nullable_convert(
+                payload.get('teachingMethod',
+                            None), SectionTeachingMethod,
+            ),
+            section_number=payload['sectionNumber'],
+            subtitle=payload['subtitle'],
+            instructors=instructors,
+            meetings=meetings,
+            delivery_mode=nullable_convert(
+                payload.get('deliveryMode', None), SectionDeliveryMode
+            ),
+            cancelled=payload.get('cancel', None) == 'Cancelled',
+            has_waitlist=payload.get('waitlist', None) == 'Y',
+            enrolment_capacity=int_or_none(
+                payload.get('enrollmentCapacity', None)),
+            actual_enrolment=int_or_none(payload.get('actualEnrolment', None)),
+            actual_waitlist=int_or_none(payload.get('actualWaitlist', None)),
+            enrolment_indicator=payload.get('enrollmentIndicator', None),
+        )
+
+    def _parse_instructor(self, payload: dict) -> Instructor:
+        """Return an instance of an Instructor representing the given payload."""
+        return Instructor(
+            first_name=payload['firstName'], last_name=payload['lastName']
+        )
+
+    def _parse_schedule(self, payload: dict) -> list[SectionMeeting]:
+        """Return a list of a SectionMeeting representing the given course
+        meeting schedule payload.
+        """
+        meetings = []
+        for meeting_data in payload.values():
+            day = meeting_data.get('meetingDay', None)
+            start_time = meeting_data.get('meetingStartTime', None)
+            end_time = meeting_data.get('meetingEndTime', None)
+
+            # Ignore meetings with a missing start/end time or day.
+            if day is None or start_time is None or end_time is None:
+                # NOTE: We should probably log this!
+                continue
+
+            meetings.append(
+                SectionMeeting(
+                    day=MeetingDay(day),
+                    start_time=self._parse_time(start_time),
+                    end_time=self._parse_time(end_time),
+                    assigned_room_1=meeting_data.get('assignedRoom1', None),
+                    assigned_room_2=meeting_data.get('assignedRoom2', None),
+                )
+            )
+        return meetings
 
     @classmethod
     def _get_latest_session(cls, verify: bool = False) -> Session:
@@ -99,11 +218,34 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         objects. Raise a ValueError if the organisations could not be
         retrieved. Note that this does NOT mutate the database.
         """
-        dataset = HttpResponseDataset(f'{cls.API_URL}/orgs').json()
-        # TODO: Add validation rules to the dataset pipeline
-        # It might look something like this:
-        # dataset = dataset.with_validation_rules(FunctionalValidator(
-        #     lambda x: 'orgs' in x,
-        #     'Failed to find organisations in response'
-        # ))
-        dataset = dataset.extract_key('orgs').kv_pairs().map(Organisation.parse)
+        # Response is a JSON object of the form:
+        #   { 'orgs': { 'code': 'name', ... }, ... }
+        # where 'code' is the department code and 'name' is the department name.
+        dataset = HttpResponseDataset(
+            f'{cls.API_URL}/orgs',
+            headers=cls.DEFAULT_HEADERS
+        ).json()
+
+        def _org_parse(kv_pair: tuple[str, str]) -> Organisation:
+            """Parse a single organisation from the API response."""
+            code, name = kv_pair
+            return Organisation(code=code, name=name, campus=Campus.ST_GEORGE)
+
+        # Convert the response to a dataset of sqrl.models.Organisation objects
+        dataset = dataset.extract_key('orgs').as_dict().kv_pairs().map(_org_parse)
+        return dataset
+
+    @staticmethod
+    def _parse_time(time: str) -> Time:
+        """Convert a length-5 time string in the format HH:MM using a 24-hour clock to a
+        Time object.
+        >>> time = UtsgArtsciTimetableDataset._parse_time("08:30")
+        >>> time.hour == 8 and time.minute == 30
+        True
+        >>> time = UtsgArtsciTimetableDataset._parse_time("11:00")
+        >>> time.hour == 11 and time.minute == 0
+        True
+        """
+        # Parts is a list consisting of two elements: hours and minutes.
+        parts = [int(part) for part in time.split(':')]
+        return Time(hour=parts[0], minute=parts[1])

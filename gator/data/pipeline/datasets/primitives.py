@@ -1,5 +1,4 @@
 """Primitive datasets."""
-from abc import ABC, abstractmethod
 from typing import Any, Iterator, Type, Union, Optional
 
 import gator.data.pipeline.datasets as datasets
@@ -16,11 +15,42 @@ class LambdaDataset(datasets.Dataset):
         return self._fn()
 
 
-class IterableDataset(datasets.Dataset, ABC):
-    """A dataset that is iterable."""
-    @abstractmethod
+class ListDataset(datasets.Dataset):
+    """A dataset that consists of a series of elements in ordered form.
+
+    List datasets are iterable, meaning that they can be used as a sequence.
+    Iterating over a list dataset will yield the elements lazily, whereas
+    calling the `get` method will return the entire data at once.
+    """
+    # Private Instance Attributes:
+    #   _data: The data contained in this dataset.
+    _data: Union[list, 'ListDataset']
+
+    def __init__(self, data: Union[Any, list[Any]]) -> None:
+        """Create a new list dataset.
+
+        Args:
+            data: The data contained in this dataset. If a list or an iterable
+                dataset, the data will be used as-is. Otherwise, the data will
+                be converted to a list (by wrapping it in a list).
+        """
+        if not isinstance(data, (list, self.__class__)):
+            data = [data]
+        self._data = data
+
     def __iter__(self) -> Iterator:
-        raise NotImplementedError
+        """Return an iterator over the elements of the dataset. Datasets
+        will be evaluated through a `get` method call.
+        """
+        if isinstance(self._data, self.__class__):
+            return self._data.__iter__()
+        else:
+            for x in self._data:
+                yield datasets.evaluate(x)
+
+    def get(self) -> Any:
+        """Return the entire dataset as a single object."""
+        return list(self)
 
     def map(self, fn: Union[transforms.DataTransformFn,
                             Type[transforms.DataTransform]]) \
@@ -49,51 +79,15 @@ class IterableDataset(datasets.Dataset, ABC):
         import gator.data.pipeline.datasets.ops as ops
         return ops.TakeDataset(self, n)
 
-
-class ListDataset(datasets.Dataset):
-    """A dataset that consists of a series of elements in ordered form.
-
-    List datasets are iterable, meaning that they can be used as a sequence.
-    Iterating over a list dataset will yield the elements lazily, whereas
-    calling the `get` method will return the entire data at once.
-    """
-    # Private Instance Attributes:
-    #   _data: The data contained in this dataset.
-    _data: Union[list, IterableDataset]
-
-    def __init__(self, data: Union[Any, list[Any]]) -> None:
-        """Create a new list dataset.
-
-        Args:
-            data: The data contained in this dataset. If a list or an iterable
-                dataset, the data will be used as-is. Otherwise, the data will
-                be converted to a list (by wrapping it in a list).
-        """
-        if not isinstance(data, (list, IterableDataset)):
-            data = [data]
-        self._data = data
-
-    def __iter__(self) -> Iterator:
-        """Return an iterator over the elements of the dataset. Datasets
-        will be evaluated through a `get` method call.
-        """
-        if isinstance(self._data, IterableDataset):
-            return self._data.__iter__()
-        else:
-            for x in self._data:
-                if isinstance(x, datasets.Dataset):
-                    yield x.get()
-                else:
-                    yield x
-
-    def get(self) -> Any:
-        """Return the data contained in this dataset."""
-        return list(self)
-
     def at(self, index: int) -> datasets.Dataset:
         """Return the element at the specified index."""
         import gator.data.pipeline.datasets.ops as ops
         return ops.ApplyDataset(self, lambda x: x[index])
+
+    def flatten(self) -> 'FlattenDataset':  # noqa: F821
+        """Return a flattened dataset."""
+        import gator.data.pipeline.datasets.ops as ops
+        return ops.FlattenDataset(self)
 
     def __str__(self) -> str:
         return f'ListDataset({str(self._data)})'
@@ -111,10 +105,7 @@ class DictDataset(datasets.Dataset):
 
     def get(self) -> dict:
         """Return the data contained in this dataset."""
-        if isinstance(self._data, datasets.Dataset):
-            return self._data.get()
-        else:
-            return self._data
+        return datasets.evaluate(self._data)
 
     def extract_keys(self, keys: list[Any],
                      defaults: Optional[Union[dict, Any]] = None) \
