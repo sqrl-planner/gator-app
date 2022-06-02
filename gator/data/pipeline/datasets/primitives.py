@@ -84,12 +84,17 @@ class ListDataset(IterableDataset):
             return self._data.__iter__()
         else:
             for x in self._data:
-                return datasets.evaluate(x)
+                yield datasets.evaluate(x)
 
     def at(self, index: int) -> datasets.Dataset:
         """Return the element at the specified index."""
         import gator.data.pipeline.datasets.ops as ops
         return ops.ApplyDataset(self, lambda x: x[index])
+
+    def flatten(self) -> 'FlattenDataset':  # noqa: F821
+        """Return a flattened dataset."""
+        import gator.data.pipeline.datasets.ops as ops
+        return ops.FlattenDataset(self)
 
     def __str__(self) -> str:
         return f'ListDataset({str(self._data)})'

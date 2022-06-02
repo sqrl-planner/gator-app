@@ -77,3 +77,21 @@ class KVPairsDataset(primitives.ListDataset):
         d = self._dataset.get()
         for k, v in d.items():
             yield k, v
+
+
+class FlattenDataset(primitives.IterableDataset):
+    """A dataset that flattens an iterable dataset."""
+
+    def __init__(self, dataset: primitives.IterableDataset) -> None:
+        self._dataset = dataset
+
+    def __iter__(self) -> Iterator:
+        return self._flatten(self._dataset)
+
+    @staticmethod
+    def _flatten(x: Any) -> Any:
+        if isinstance(x, (list, primitives.IterableDataset)):
+            for y in datasets.evaluate(x):
+                yield from FlattenDataset._flatten(y)
+        else:
+            yield x
