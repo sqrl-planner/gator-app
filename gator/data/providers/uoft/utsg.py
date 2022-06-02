@@ -239,10 +239,10 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
     def _parse_time(time: str) -> Time:
         """Convert a length-5 time string in the format HH:MM using a 24-hour clock to a
         Time object.
-        >>> time = convert_time("08:30")
+        >>> time = UtsgArtsciTimetableDataset._parse_time("08:30")
         >>> time.hour == 8 and time.minute == 30
         True
-        >>> time = convert_time("11:00")
+        >>> time = UtsgArtsciTimetableDataset._parse_time("11:00")
         >>> time.hour == 11 and time.minute == 0
         True
         """
