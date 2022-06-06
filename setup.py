@@ -7,4 +7,9 @@ setuptools.setup(
     description='Central dataset aggregator and content manager for sqrl planner.',
     packages=setuptools.find_packages(),
     python_requires='>=3.9',
+    py_modules=['composer'],
+    entry_points='''
+        [console_scripts]
+        gator=gator.cli:main
+    '''
 )
