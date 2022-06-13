@@ -31,7 +31,7 @@ class RepositoryRegistry:
     """A collection of repositories that are accessible to the app."""
     def __init__(self) -> None:
         self._routes = Mapper()
-        self._metadata = {}
+        self._route_metadata = {}
 
     def route(self, pattern: str, **kwargs: Any) -> callable:
         """A decorator that is used to register a repo function for a
@@ -86,7 +86,7 @@ class RepositoryRegistry:
             pattern,
             __uuid__=route_uuid,  # used to identify the route
         )
-        self._metadata[route_uuid] = dict(f=f, type_hints=get_type_hints(f))
+        self._route_metadata[route_uuid] = dict(f=f, type_hints=get_type_hints(f))
 
     def match(self, query: str) -> Optional[Repository]:
         """Match a query against registered routes.
@@ -100,7 +100,7 @@ class RepositoryRegistry:
         match = self._routes.match(query)
         if match:
             route_uuid = match.get('__uuid__')
-            metadata = self._metadata[route_uuid]
+            metadata = self._route_metadata[route_uuid]
 
             params = without_keys(match, '__uuid__')
             self._try_convert_params(params, metadata['type_hints'])
