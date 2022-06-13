@@ -7,6 +7,7 @@ itsdangerous<=2.0.1
 Flask-Cors==3.0.10
 flask-mongoengine
 flask-restx==0.5.1
+routes
 
 pytest==6.2.5
 pytest-cov==3.0.0

@@ -14,8 +14,11 @@ from gator.models.timetable import (
 from gator.data.pipeline.datasets import Dataset
 from gator.data.pipeline.datasets.io import HttpResponseDataset
 
+from gator.data.repo import Repository
+from gator.extensions import repo_registry
 from gator.data.providers.common import TimetableDataset
 from gator.data.utils import nullable_convert, int_or_none
+
 
 
 class UtsgArtsciTimetableDataset(TimetableDataset):
@@ -249,3 +252,31 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         # Parts is a list consisting of two elements: hours and minutes.
         parts = [int(part) for part in time.split(':')]
         return Time(hour=parts[0], minute=parts[1])
+
+
+@repo_registry.route('/timetable/uoft/artsci/:session_code')
+def _utsg_artsci_timetable_repo(session_code: str) -> Repository:
+    """Return a repository for the given session code.
+
+    Args:
+        session_code: The session code for the timetable to retrieve. If
+            "latest", the latest session will be used.
+    """
+    if session_code == 'latest':
+        session_code = UtsgArtsciTimetableDataset._get_latest_session().code
+
+    # Validate the session code
+    if not UtsgArtsciTimetableDataset._is_session_code_valid(session_code):
+        raise ValueError('invalid session code!')
+    else:
+        session = Session.parse(session_code)
+        return Repository(
+            [UtsgArtsciTimetableDataset(session_code)],
+            slug=f'timetable-utsg-artsci-{session_code}',
+            name='UTSG Arts and Science Timetable ({})'.format(
+                session.human_str),
+            description=
+                'Timetable for the Faculty of Arts and Science'
+                ' at the University of Toronto for the {} session.'.format(
+                    session.human_str)
+        )

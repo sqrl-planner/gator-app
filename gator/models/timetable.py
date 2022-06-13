@@ -179,6 +179,20 @@ class Session:
         suffix = 5 if self.summer else 9
         return f'{str(self.year).zfill(4)}{suffix}'
 
+    @property
+    def human_str(self) -> str:
+        """Return this session as a human-readable string.
+
+        >>> Session(2020, summer=False).human_str
+        'Fall/Winter 2020'
+        >>> Session(1966, summer=True).human_str
+        'Summer 1966'
+        >>> Session(1, summer=False).human_str
+        'Fall/Winter 2019'
+        """
+        term = 'Summer' if self.summer else 'Fall/Winter'
+        return f'{term} {self.year}'
+
     def __str__(self) -> str:
         return self.code
 
