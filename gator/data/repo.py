@@ -1,8 +1,11 @@
 import uuid
+from pathlib import Path
 from pydoc import locate
+from functools import wraps
 from dataclasses import dataclass, field
 from typing import Optional, Any, get_type_hints
 
+import yaml
 from routes import Mapper
 
 from gator.data.utils import without_keys
@@ -88,6 +91,17 @@ class RepositoryRegistry:
         )
         self._route_metadata[route_uuid] = dict(f=f, type_hints=get_type_hints(f))
 
+    def has_match(self, query: str) -> bool:
+        """Check if a query matches a route.
+
+        Args:
+            query: The query string.
+
+        Returns:
+            True if a match was found, False otherwise.
+        """
+        return self._routes.match(query) is not None
+
     def match(self, query: str) -> Optional[Repository]:
         """Match a query against registered routes.
 
@@ -127,3 +141,79 @@ class RepositoryRegistry:
                     params[k] = t(v)
                 except:
                     pass
+
+
+def _ensure_initialised(f: callable) -> callable:
+    """A decorator to ensure the repolist has been initted."""
+    @wraps(f)
+    def wrapper(self: 'RepositoryRegistry', *args: Any, **kwargs: Any) -> Any:
+        assert self._fp is not None and self._registry is not None,\
+            'RepositoryList not initialised. Call RepositoryList.__init__ first.'
+        return f(self, *args, **kwargs)
+    return wrapper
+
+
+class RepositoryList:
+    """Monitors a repolist yml file."""
+    def __init__(self, fp: Optional[Path] = None,
+                 registry: Optional[RepositoryRegistry] = None) -> None:
+        self._fp = fp
+        self._registry = registry
+
+    @property
+    @_ensure_initialised
+    def repos(self) -> list[tuple[Repository, str]]:
+        """Return a list of tuples of the form (repo, route) giving all the
+        repositories in this repolist along with their registry route."""
+        repos = []
+        for pattern in self.routes:
+            repo = self._registry.match(pattern)
+            if repo is not None:
+                repos.append((repo, pattern))
+
+        return repos
+
+    @property
+    @_ensure_initialised
+    def routes(self) -> list[str]:
+        """Return a list of all routes in this repolist."""
+        with open(self._fp, 'r') as f:
+            return yaml.safe_load(f)
+
+    @_ensure_initialised
+    def add(self, pattern: str) -> None:
+        """Add a new repository to the list.
+
+        Args:
+            pattern: The pattern to match the repository.
+        """
+        if self._registry.has_match(pattern):
+            # Add to the list
+            with open(self._fp, 'r') as f:
+                repolist = yaml.safe_load(f)
+            # Check if the pattern is already in the list
+            if pattern not in repolist:
+                repolist.append(pattern)
+                with open(self._fp, 'w') as f:
+                    yaml.dump(repolist, f)
+        else:
+            raise ValueError(f'{pattern}: No such repository')
+
+    @_ensure_initialised
+    def remove(self, pattern: str) -> None:
+        """Remove a repository from the list.
+
+        Args:
+            pattern: The pattern to match the repository.
+        """
+        if self._registry.has_match(pattern):
+            # Remove from the list
+            with open(self._fp, 'r') as f:
+                repolist = yaml.safe_load(f)
+            # Check if the pattern is already in the list
+            if pattern in repolist:
+                repolist.remove(pattern)
+                with open(self._fp, 'w') as f:
+                    yaml.dump(repolist, f)
+        else:
+            raise ValueError(f'{pattern}: No such repository')
