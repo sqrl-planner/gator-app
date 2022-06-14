@@ -32,6 +32,7 @@ class Repository:
 
 class RepositoryRegistry:
     """A collection of repositories that are accessible to the app."""
+
     def __init__(self) -> None:
         self._routes = Mapper()
         self._route_metadata = {}
@@ -155,6 +156,7 @@ def _ensure_initialised(f: callable) -> callable:
 
 class RepositoryList:
     """Monitors a repolist yml file."""
+
     def __init__(self, fp: Optional[Path] = None,
                  registry: Optional[RepositoryRegistry] = None) -> None:
         self._fp = fp
