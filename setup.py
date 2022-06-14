@@ -10,6 +10,6 @@ setuptools.setup(
     py_modules=['composer'],
     entry_points='''
         [console_scripts]
-        gator=gator.cli:main
+        gator=gator.cli:app
     '''
 )

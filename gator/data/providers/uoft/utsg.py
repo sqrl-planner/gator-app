@@ -18,7 +18,6 @@ from gator.data.providers.common import TimetableDataset
 from gator.data.utils import nullable_convert, int_or_none
 
 
-
 class UtsgArtsciTimetableDataset(TimetableDataset):
     """A dataset for the Faculty of Arts and Science Timetable at the
     University of Toronto, St. George campus.

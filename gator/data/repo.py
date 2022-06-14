@@ -139,7 +139,7 @@ class RepositoryRegistry:
                 try:
                     t = locate(type_hints[k])
                     params[k] = t(v)
-                except:
+                except ValueError:
                     pass
 
 

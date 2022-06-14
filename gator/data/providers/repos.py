@@ -1,5 +1,4 @@
 from gator.data.repo import Repository
-from gator.data.repo import Repository
 
 from gator.models.timetable import Session
 from gator.data.repo import RepositoryRegistry
@@ -24,13 +23,13 @@ def _utsg_artsci_timetable_repo(session_code: str) -> Repository:
         raise ValueError('invalid session code!')
     else:
         session = Session.parse(session_code)
+        desc = 'Timetable for the Faculty of Arts and Science'\
+               ' at the University of Toronto for the {} session.'\
+                   .format(session.human_str)
         return Repository(
             [UtsgArtsciTimetableDataset(session_code)],
             slug=f'timetable-utsg-artsci-{session_code}',
             name='UTSG Arts and Science Timetable ({})'.format(
                 session.human_str),
-            description=
-                'Timetable for the Faculty of Arts and Science'
-                ' at the University of Toronto for the {} session.'.format(
-                    session.human_str)
+            description=desc
         )
