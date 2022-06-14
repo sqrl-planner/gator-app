@@ -31,3 +31,35 @@ def repos_list() -> None:
         rows.append([repo.slug, route, repo.name, wrapped_desc])
 
     print(tabulate(rows, headers=headers, tablefmt='plain'))
+
+@repo_app.command('add')
+def repos_add(
+        repo: str = typer.Argument(..., help='Repo route to add to repolist.')
+    ) -> None:
+    """Add a repo by route."""
+    # We just need to initialize the app to make sure the extensions are registered.
+    create_app()
+
+    registry = repolist._registry
+    if registry.has_match(repo):
+        # repo is a pattern
+        repolist.add(repo)
+    else:
+        print('Could not find a repository matching the slug or pattern "{}"'\
+            .format(repo))
+
+@repo_app.command('remove')
+def repos_remove(
+        repo: str = typer.Argument(..., help='Repo route to remove from repolist.')
+    ) -> None:
+    """Remove a repo by route."""
+    # We just need to initialize the app to make sure the extensions are registered.
+    create_app()
+
+    registry = repolist._registry
+    if registry.has_match(repo):
+        # repo is a pattern
+        repolist.remove(repo)
+    else:
+        print('Could not find a repository matching the slug or pattern "{}"'\
+            .format(repo))
