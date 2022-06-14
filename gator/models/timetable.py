@@ -187,7 +187,7 @@ class Session:
         'Fall/Winter 2020'
         >>> Session(1966, summer=True).human_str
         'Summer 1966'
-        >>> Session(1, summer=False).human_str
+        >>> Session(2019, summer=False).human_str
         'Fall/Winter 2019'
         """
         term = 'Summer' if self.summer else 'Fall/Winter'
