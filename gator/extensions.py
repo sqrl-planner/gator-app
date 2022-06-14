@@ -1,7 +1,7 @@
 """Flask extensions."""
 from flask_mongoengine import MongoEngine
 
-from gator.data.repo import RepositoryList
+from gator.data.pipeline.repo import RepositoryList
 
 
 db = MongoEngine()
