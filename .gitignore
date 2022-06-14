@@ -379,3 +379,5 @@ cython_debug/
 
 # VS Code
 .vscode/*
+
+config/repolist.yml

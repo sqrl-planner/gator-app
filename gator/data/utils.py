@@ -19,3 +19,14 @@ def int_or_none(value: Any) -> Optional[int]:
     True
     """
     return nullable_convert(value, int)
+
+
+def without_keys(d: dict, keys: set[Any]) -> dict:
+    """Remove keys from a dict.
+
+    >>> without_keys({'a': 1, 'b': 2}, {'a'})
+    {'b': 2}
+    >>> without_keys({'a': 1, 'b': 2}, {'c'}) == {'a': 1, 'b': 2}
+    True
+    """
+    return {k: v for k, v in d.items() if k not in keys}
