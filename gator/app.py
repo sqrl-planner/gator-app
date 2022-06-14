@@ -21,7 +21,7 @@ def create_app(settings_override: Any = None) -> Flask:
     from gator.extensions import db, repolist
     db.init_app(app)
 
-    from gator.data.providers.repos import repo_registry
+    from gator.data.providers.repolist import repo_registry
     repolist.__init__(app.config['REPOLIST_FILE'], repo_registry)
 
     # Register api with the app
