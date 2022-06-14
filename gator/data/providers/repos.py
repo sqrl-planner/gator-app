@@ -23,9 +23,10 @@ def _utsg_artsci_timetable_repo(session_code: str) -> Repository:
         raise ValueError('invalid session code!')
     else:
         session = Session.parse(session_code)
-        desc = 'Timetable for the Faculty of Arts and Science'\
-               ' at the University of Toronto for the {} session.'\
-                   .format(session.human_str)
+        # Build description
+        desc = ('Timetable for the Faculty of Arts and Science at the University'
+                ' of Toronto for the {} session.'.format(session.code))
+
         return Repository(
             [UtsgArtsciTimetableDataset(session_code)],
             slug=f'timetable-utsg-artsci-{session_code}',
