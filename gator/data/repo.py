@@ -137,7 +137,7 @@ class RepositoryRegistry:
                 # Try to convert the value to the correct type
                 # If it fails, then just leave it as a string.
                 try:
-                    t = locate(type_hints[k])
+                    t = locate(type_hints[k].__name__)
                     params[k] = t(v)
                 except ValueError:
                     pass
