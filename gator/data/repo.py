@@ -1,13 +1,15 @@
 import uuid
+import fnmatch
 from pathlib import Path
 from pydoc import locate
 from functools import wraps
 from dataclasses import dataclass, field
-from typing import Optional, Any, get_type_hints
+from typing import Optional, Any, Iterator, get_type_hints
 
 import yaml
 from routes import Mapper
 
+from gator.models.common import Record
 from gator.data.utils import without_keys
 from gator.data.pipeline.datasets import Dataset
 
@@ -18,6 +20,7 @@ class Repository:
 
     Instance Attributes:
         datasets: A list of datasets that are available in this repository.
+            All datasets in this list must return a list of Record objects.
         slug: A short string that uniquely identifies this repository.
         name: A human-readable name for this repository.
         description: A short description of this repository.
@@ -28,6 +31,13 @@ class Repository:
     name: Optional[str] = None
     description: Optional[str] = None
     metadata: dict = field(default_factory=dict)
+
+    def pull(self) -> list[Record]:
+        """Pull all datasets from the repository."""
+        records = []
+        for dataset in self.datasets:
+            records.extend(dataset.get())
+        return records
 
 
 class RepositoryRegistry:
@@ -160,18 +170,32 @@ class RepositoryList:
         self._fp = fp
         self._registry = registry
 
-    @property
     @_ensure_initialised
-    def repos(self) -> list[tuple[Repository, str]]:
-        """Return a list of tuples of the form (repo, route) giving all the
+    def repos_iter(self) -> Iterator[tuple[Repository, str]]:
+        """Return an iterator of tuples of the form (repo, route) giving all the
         repositories in this repolist along with their registry route."""
-        repos = []
         for pattern in self.routes:
             repo = self._registry.match(pattern)
             if repo is not None:
-                repos.append((repo, pattern))
+                yield repo, pattern
 
-        return repos
+    @_ensure_initialised
+    def get_all_repos(self) -> list[tuple[Repository, str]]:
+        """Return a list of tuples of the form (repo, route) giving all the
+        repositories in this repolist along with their registry route."""
+        return list(self.repos_iter())
+
+    @_ensure_initialised
+    def filter(self, query: str) -> Iterator[tuple[Repository, str]]:
+        """Filter the repos by a query string. Returns a list of tuples of
+        the form (repo, route) giving all the repositories in this repolist
+        along with their registry route with slug or route matching the query.
+        """
+        for repo, route in self.repos_iter():
+            match_slug = fnmatch.fnmatch(repo.slug, query)
+            match_route = fnmatch.fnmatch(route, query)
+            if match_slug or match_route:
+                yield repo, route
 
     @property
     @_ensure_initialised
