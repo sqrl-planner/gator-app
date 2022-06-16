@@ -22,7 +22,7 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
     Args:
         force: If True, force the sync even if the data is already up-to-date.
         pattern: A Unix-style pattern to match against the slugs or routes of
-            repositories in the repo list. upports wildcards. For example,
+            rexxpositories in the repo list. upports wildcards. For example,
             `books-*` will match all repositories that start with
             `books-`. Default to '*' to match all repositories.
     """

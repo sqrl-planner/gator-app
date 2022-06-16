@@ -21,12 +21,8 @@ def create_app(settings_override: Any = None) -> Flask:
     from gator.extensions.db import db
     db.init_app(app)
 
-<<<<<<< Updated upstream
-    from gator.data.providers.repos import repo_registry
-=======
     from gator.extensions.repolist import repolist
-    from gator.data.providers.repolist import repo_registry
->>>>>>> Stashed changes
+    from gator.data.providers.repos import repo_registry
     repolist.__init__(app.config['REPOLIST_FILE'], repo_registry)
 
     # Register api with the app

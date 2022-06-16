@@ -1,7 +1,7 @@
-from gator.data.repo import Repository
+from gator.data.pipeline.repo import Repository
 
 from gator.models.timetable import Session
-from gator.data.repo import RepositoryRegistry
+from gator.data.pipeline.repo import RepositoryRegistry
 from gator.data.providers.uoft.utsg import UtsgArtsciTimetableDataset
 
 repo_registry = RepositoryRegistry()
