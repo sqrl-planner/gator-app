@@ -51,7 +51,7 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
 
     # Print info about repositories
     if len(repos) > 0:
-        typer.echo('Pulling data from collected repositories: ' + \
+        typer.echo('Pulling data from collected repositories: ' +
                    ', '.join(repo.slug for repo, _ in repos))
     else:
         typer.echo('No repositories found.', err=True)
@@ -72,7 +72,6 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
             # TODO: Move this to a function
             # Check if the record already exists
             ...
-
 
 
 @repo_app.command('list')
