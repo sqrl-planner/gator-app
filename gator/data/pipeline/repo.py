@@ -42,6 +42,7 @@ class Repository:
 
 class RepositoryRegistry:
     """A collection of repositories that are accessible to the app."""
+
     def __init__(self) -> None:
         self._routes = Mapper()
         self._route_metadata = {}
@@ -147,7 +148,7 @@ class RepositoryRegistry:
                 # Try to convert the value to the correct type
                 # If it fails, then just leave it as a string.
                 try:
-                    t = locate(type_hints[k])
+                    t = locate(type_hints[k].__name__)
                     params[k] = t(v)
                 except ValueError:
                     pass
@@ -165,6 +166,7 @@ def _ensure_initialised(f: callable) -> callable:
 
 class RepositoryList:
     """Monitors a repolist yml file."""
+
     def __init__(self, fp: Optional[Path] = None,
                  registry: Optional[RepositoryRegistry] = None) -> None:
         self._fp = fp
