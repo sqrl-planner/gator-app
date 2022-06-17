@@ -1,10 +1,12 @@
 """Data pipelines for UTSG datasets."""
 import re
+import json
 from typing import Optional, Union
 
 import requests
 from bs4 import BeautifulSoup
 
+from gator.models.common import Record
 from gator.models.timetable import (
     Session, Campus, Organisation, Instructor,
     Course, CourseTerm,
@@ -59,16 +61,16 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
             lambda org: self._get_courses_in_organisation(org)
         ).flatten()
 
-    def get(self) -> list:
+    def get(self) -> list[Record]:
         """Return a list of all the courses in the Arts and Science
         Faculty of Arts and Science.
         """
         return self._courses.get()
 
     def _get_courses_in_organisation(
-            self, org: Organisation) -> list[Course]:
+            self, org: Organisation) -> list[Record]:
         """Return all the courses belonging to the given organisation as a list of
-        Course objects.
+        Record objects.
 
         Args:
             org: The Organisation object to get courses for.
@@ -78,13 +80,15 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         courses = courses.kv_pairs().map(lambda pair: self._parse_course(org, pair[1]))
         return courses
 
-    def _parse_course(self, org: Organisation, payload: dict) -> Course:
-        """Return an instance of a Course representing the course given by the payload."""
+    def _parse_course(self, org: Organisation, payload: dict) \
+            -> Record:
+        """Return a Record object representing the given payload."""
         # Full code is in the format <code>-<term>-<session>. For example,
         # MAT137Y1-F-20219
         full_code = '{}-{}-{}'.format(payload['code'],
                                       payload['section'], payload['session'])
-        return Course(
+
+        course = Course(
             id=full_code,
             organisation=org,
             code=payload['code'],
@@ -103,6 +107,16 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
             web_timetable_instructions=payload['webTimetableInstructions'],
             delivery_instructions=payload['deliveryInstructions'],
             campus=Campus.ST_GEORGE,
+        )
+
+        payload_hash = json.dumps(payload, sort_keys=True,
+                                  separators=(',', ':'), ensure_ascii=True,
+                                  default=str)
+
+        return Record(
+            id=full_code,
+            doc=course,
+            hash=payload_hash
         )
 
     def _parse_section(self, payload: dict) -> Section:

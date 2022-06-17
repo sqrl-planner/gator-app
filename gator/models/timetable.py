@@ -6,7 +6,7 @@ from typing import Optional
 from functools import lru_cache
 from dataclasses import dataclass
 
-from gator.extensions import db
+from gator.extensions.db import db
 from gator.models.common import Time
 
 
