@@ -32,20 +32,27 @@ You start the Docker container by running
 
 #### Setting up the database
 
-gator uses MongoDB, a NoSQL database program. An instance of MongoDB is already setup for you (with a ``gator`` database) by the Docker container. 
+gator uses MongoDB, a NoSQL database program. An instance of MongoDB is already setup for you (with a ``gator`` database) by the Docker container.
 
 Alterntively, you can run an instance locally or use a number of database providers. If you do so, create an empty database on your MongoDB instance and update the ``.env`` file with your instance information (host, credentials, and db name).
 
 #### Pulling and syncing data
 
-If your database is empty, you'll need timetable information to use gator. To pull the latest data from all dataset sources, in the Docker container run
+First, copy the repolist starter file.
 ```shell
-flask sync
+ cp config/repolist.example.yml config/repolist.yml
 ```
+Remember to update the ``REPOLIST_FILE`` environment variable if you're changing the path of this file. The repolist file contains a list of data repositories to monitor. By default, it is setup to monitor the latest version of every implemented dataset (e.g. utsg artsci timetable, etc...)
+
+If your database is empty, you'll need timetable information to use gator. To pull the latest data from all repos in your repolist, in the Docker container run
+```shell
+gator data pull
+```
+For more information on this command and the data CLI, see the [data cli](/docs/data_cli.md) documentation.
+
+### Automating data syncing
 
 The Docker container will automaticlly sync the data on the first-run. You might find it useful to setup a cron job to periodically run this job in production.
-
-Currently, the dataset sources are hardcoded parameters in the [``config/settings.py``](https://github.com/sqrl-planner/sqrl-server/blob/main/config/settings.py) file. You must modify this file directly to customize the data sources.
 
 ## Native Development Environment
 If you prefer to work natively, rather than bootstraping the application in a Docker container, see the [native development workflow](docs/develop-native.md) docs for setup instructions.
