@@ -2,6 +2,7 @@
 import textwrap
 
 import typer
+from tqdm import tqdm
 from tabulate import tabulate
 from yaspin import yaspin
 from yaspin.spinners import Spinners
@@ -32,13 +33,13 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
         # Filter repos by pattern
         for repo, route in repolist.filter(pattern):
             with sp.hidden():
-                typer.echo(' '.join(
+                typer.echo(' '.join([
                     '> ',
                     typer.style(f'{repo.slug} ', bold=True,
                                 fg=typer.colors.BRIGHT_WHITE),
                     typer.style('resolved from ', italic=True),
                     typer.style(route, fg=typer.colors.BLUE, italic=True)
-                ))
+                ]))
 
             repos.append((repo, route))
 
@@ -49,10 +50,10 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
 
     # Print info about repositories
     if len(repos) > 0:
-        typer.echo(' '.join(
+        typer.echo(' '.join([
             'Pulling data from collected repositories: ',
             ', '.join(repo.slug for repo, _ in repos)
-        ))
+        ]))
     else:
         typer.echo('No repositories found.', err=True)
 
@@ -67,11 +68,20 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
             sp.ok()
 
     # Sync records with the database
-    with yaspin(text=f'Syncing {len(records)} records with the database', timer=True) as sp:
-        for record in records:
-            # TODO: Move this to a function
-            # Check if the record already exists
-            ...
+
+    with tqdm(records, desc='Syncing records', unit='record', leave=False) as pbar:
+        for record in pbar:
+            status = record.sync(force=force)
+            # Style status based on success or failure
+            if status in {'updated', 'created'}:
+                status = typer.style(status.upper(), fg=typer.colors.GREEN)
+            elif status == 'skipped':
+                status = typer.style(status.upper(), fg=typer.colors.YELLOW)
+            else:
+                status = typer.style('ERROR', fg=typer.colors.RED)
+
+            slug = record.name or record.id
+            pbar.write(f'\t> {status} {slug}')
 
 
 @repo_app.command('list')

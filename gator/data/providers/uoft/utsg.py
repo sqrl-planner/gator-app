@@ -1,6 +1,7 @@
 """Data pipelines for UTSG datasets."""
 import re
 import json
+import hashlib
 from typing import Optional, Union
 
 import requests
@@ -56,7 +57,7 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
                 code.
         """
         super().__init__(session=session)
-        organisations = self._get_all_organisations()
+        organisations = self._get_all_organisations().take(1)
         self._courses = organisations.map(
             lambda org: self._get_courses_in_organisation(org)
         ).flatten()
@@ -109,14 +110,18 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
             campus=Campus.ST_GEORGE,
         )
 
-        payload_hash = json.dumps(payload, sort_keys=True,
-                                  separators=(',', ':'), ensure_ascii=True,
-                                  default=str)
+        payload_hash = hashlib.md5(
+            json.dumps(payload, sort_keys=True,
+                       separators=(',', ':'), ensure_ascii=True,
+                       default=str
+            )
+        ).hexdigest
 
         return Record(
-            id=full_code,
+            id=course.id,
             doc=course,
-            hash=payload_hash
+            hash=payload_hash,
+            name='courses/{}'.format(full_code),
         )
 
     def _parse_section(self, payload: dict) -> Section:
