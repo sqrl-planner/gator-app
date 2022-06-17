@@ -24,7 +24,7 @@ class Repository:
         slug: A short string that uniquely identifies this repository.
         name: A human-readable name for this repository.
         description: A short description of this repository.
-        metadata: Any additional metadata that is relevant to this repository.
+ metadata that is relevant to this repository.
     """
     datasets: list[Dataset]
     slug: str

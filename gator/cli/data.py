@@ -1,13 +1,11 @@
 """Data-related functions for the CLI."""
 import textwrap
-from typing import Optional
 
 import typer
 from tabulate import tabulate
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 
-from gator.models.common import Record
 from gator.extensions.repolist import repolist
 
 app = typer.Typer()
@@ -34,13 +32,13 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
         # Filter repos by pattern
         for repo, route in repolist.filter(pattern):
             with sp.hidden():
-                typer.echo(
-                    '> ' +
+                typer.echo(' '.join(
+                    '> ',
                     typer.style(f'{repo.slug} ', bold=True,
-                                fg=typer.colors.BRIGHT_WHITE) +
-                    typer.style('resolved from ', italic=True) +
+                                fg=typer.colors.BRIGHT_WHITE),
+                    typer.style('resolved from ', italic=True),
                     typer.style(route, fg=typer.colors.BLUE, italic=True)
-                )
+                ))
 
             repos.append((repo, route))
 
@@ -51,8 +49,10 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
 
     # Print info about repositories
     if len(repos) > 0:
-        typer.echo('Pulling data from collected repositories: ' +
-                   ', '.join(repo.slug for repo, _ in repos))
+        typer.echo(' '.join(
+            'Pulling data from collected repositories: ',
+            ', '.join(repo.slug for repo, _ in repos)
+        ))
     else:
         typer.echo('No repositories found.', err=True)
 
@@ -63,7 +63,7 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
         with _sp_style(yaspin(Spinners.material, text=f'Pulling {slug}', timer=True)) as sp:
             records.extend(repo.pull())
             # finalize
-            sp.text += f' FINISHED'
+            sp.text += ' FINISHED'
             sp.ok()
 
     # Sync records with the database
