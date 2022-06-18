@@ -96,8 +96,8 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
 
     # Print status summary
     if len(status_freq) > 0:
-        typer.echo(', '.join([
-            f'{value} {key}' for key, value in status_freq.items()]))
+        typer.echo(', '.join([f'{value} {key}'
+                   for key, value in status_freq.items()]))
 
 
 @repo_app.command('list')

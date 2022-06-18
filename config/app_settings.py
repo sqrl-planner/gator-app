@@ -13,6 +13,8 @@ SERVER_NAME = os.getenv(
 
 
 # MongoDB configuration
+
+
 def _get_mongodb_credential(credential_type: str,
                             default: Optional[str] = None) -> str:
     """Return a credential for the MongoDB database. Will first check
