@@ -4,7 +4,6 @@ from typing import Any, Optional
 
 from yaspin import yaspin, Spinner
 from yaspin.spinners import Spinners
-from yaspin.helpers import to_unicode
 
 
 class SpinnerProgressBar:

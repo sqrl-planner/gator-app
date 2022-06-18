@@ -11,6 +11,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', None)
 SERVER_NAME = os.getenv(
     'SERVER_NAME', 'localhost:{0}'.format(os.getenv('PORT', '5000')))
 
+
 # MongoDB configuration
 def _get_mongodb_credential(credential_type: str,
                             default: Optional[str] = None) -> str:
