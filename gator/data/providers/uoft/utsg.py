@@ -17,10 +17,11 @@ from gator.models.timetable import (Campus, Course, CourseTerm, Instructor,
 
 
 class UtsgArtsciTimetableDataset(TimetableDataset):
-    """A dataset for the Faculty of Arts and Science Timetable at the
-    University of Toronto, St. George campus.
+    """A dataset for the Faculty of Arts and Science Timetable.
 
-    Source: https://timetable.iit.artsci.utoronto.ca/api/
+    Remarks:
+        This dataset scrapes against the timetable api. See the following
+        for more information: https://timetable.iit.artsci.utoronto.ca/api/.
 
     Class Attributes:
         ROOT_URL: The root url for the API homepage.
@@ -58,18 +59,23 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         ).flatten()
 
     def get(self) -> list[Record]:
-        """Return a list of all the courses in the Arts and Science
-        Faculty of Arts and Science.
+        """Get all  the courses in the Faculty of Arts and Science timetable.
+
+        Returns:
+            A list of Record objects representing the courses in the timetable.
         """
         return self._courses.get()
 
     def _get_courses_in_organisation(
             self, org: Organisation) -> list[Record]:
-        """Return all the courses belonging to the given organisation as a list of
-        Record objects.
+        """Get all the courses belonging to the given organisation.
 
         Args:
             org: The Organisation object to get courses for.
+
+        Returns:
+            A list of Record objects representing the courses in the given
+            organisation.
         """
         endpoint_url = f'{self.API_URL}/{self.session.code}/courses?org={org.code}'
         courses = HttpResponseDataset(endpoint_url, headers=self.DEFAULT_HEADERS).json()
@@ -154,9 +160,7 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         )
 
     def _parse_schedule(self, payload: dict) -> list[SectionMeeting]:
-        """Return a list of a SectionMeeting representing the given course
-        meeting schedule payload.
-        """
+        """Parse the given payload and return a list of SectionMeeting objects."""
         meetings = []
         for meeting_data in payload.values():
             day = meeting_data.get('meetingDay', None)
@@ -181,11 +185,16 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
 
     @classmethod
     def _get_latest_session(cls, verify: bool = False) -> Session:
-        """Return the session for the latest version of the Arts and Science timetable.
+        """Get the latest session code.
+
         Raise a ValueError if the session could not be found.
 
         Args:
             verify: Whether to verify the session code against the API.
+
+        Returns:
+            A Session object representing the latest session for the Faculty
+            of Arts and Science timetable.
         """
         request = requests.get(cls.ROOT_URL, cls.DEFAULT_HEADERS)
         soup = BeautifulSoup(request.content, 'html.parser')
@@ -207,7 +216,11 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
 
     @classmethod
     def _is_session_code_valid(cls, session_code: str) -> bool:
-        """Verifies a session code against the API. Return whether the session code is valid."""
+        """Verify a session code against the API.
+
+        Returns:
+            True if the session code is valid, False otherwise.
+        """
         # To verify the session code, we use it to find a course. The session code is valid if the
         # course is found. We assume that MAT137 will be in all sessions (which is a reasonable
         # assumption since it is a required course for a variety of majors, including computer science,
@@ -221,10 +234,14 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
 
     @classmethod
     def _get_all_organisations(cls) -> Dataset:
-        """Return a dataset containing all the course departments in the
-        Faculty of Arts and Science as a list of sqrl.models.Organisation
-        objects. Raise a ValueError if the organisations could not be
-        retrieved. Note that this does NOT mutate the database.
+        """Get all organisations from the Arts and Science timetable.
+
+        Returns:
+            A Dataset object containing all the course departments in the
+            Faculty of Arts and Science as a list of Organisation objects.
+
+        Raise a ValueError if the organisations could not be retrieved.
+        Note that this does NOT mutate the database.
         """
         # Response is a JSON object of the form:
         #   { 'orgs': { 'code': 'name', ... }, ... }
@@ -245,8 +262,14 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
 
     @staticmethod
     def _parse_time(time: str) -> Time:
-        """Convert a length-5 time string in the format HH:MM using a 24-hour clock to a
-        Time object.
+        """Parse a time string into a Time object.
+
+        Convert a length-5 time string in the format HH:MM using a 24-hour
+        clock to a Time object.
+
+        Returns:
+            A Time object representing the given time.
+
         >>> time = UtsgArtsciTimetableDataset._parse_time("08:30")
         >>> time.hour == 8 and time.minute == 30
         True

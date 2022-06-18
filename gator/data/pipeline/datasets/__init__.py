@@ -2,8 +2,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Type, Union
 
-import gator.data.pipeline.transforms as transforms
-
 
 class Dataset(ABC):
     """Dataset interface.
@@ -30,8 +28,7 @@ class Dataset(ABC):
         """Return the data contained in this dataset."""
         raise NotImplementedError()
 
-    def apply(self, fn: Union[transforms.DataTransformFn,
-                              Type[transforms.DataTransform]]) -> 'Dataset':
+    def apply(self, fn: Union[callable, Type]) -> 'Dataset':
         """Apply a data transform to the dataset.
 
         Args:
@@ -52,8 +49,11 @@ class Dataset(ABC):
         return ops.ApplyDataset(self, fn)
 
     def as_list(self) -> 'ListDataset':  # noqa: F821
-        """Cast the dataset to a list dataset. NOTE: Depending on the
-        underlying data in this dataset, this may not be a valid operation.
+        """Cast the dataset to a list dataset.
+
+        Remarks:
+            Depending on the underlying data in this dataset,
+            this may not be a valid operation.
 
         Returns:
             A list dataset.
@@ -62,8 +62,11 @@ class Dataset(ABC):
         return primitives.ListDataset(self)
 
     def as_dict(self) -> 'DictDataset':  # noqa: F821
-        """Cast the dataset to a dictionary dataset. NOTE: Depending on the
-        underlying data in this dataset, this may not be a valid operation.
+        """Cast the dataset to a dictionary dataset.
+
+        Remarks:
+            Depending on the underlying data in this dataset,
+            this may not be a valid operation.
 
         Returns:
             A dictionary dataset.
@@ -73,8 +76,10 @@ class Dataset(ABC):
 
 
 def evaluate(x: Any) -> Any:
-    """Rollout a dataset. Return the data contained in the dataset, or the
-    input itself if it is not a dataset.
+    """Rollout a dataset.
+
+    Return the data contained in the dataset, or the input itself if it
+    is not a dataset.
     """
     if isinstance(x, Dataset):
         return evaluate(x.get())

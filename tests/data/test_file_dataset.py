@@ -35,6 +35,7 @@ def test_rb_no_stream(mock_byte_file) -> None:
 
 def test_rb_stream_1(mock_byte_file) -> None:
     """Test the FileDataset class in binary read mode, with streaming.
+
     Use a chunk size of 2.
     """
     dataset = FileDataset('test.txt', chunk_size=2)
@@ -44,6 +45,7 @@ def test_rb_stream_1(mock_byte_file) -> None:
 
 def test_rb_stream_2(mock_byte_file) -> None:
     """Test the FileDataset class in binary read mode, with streaming.
+
     Use a chunk size larger than the file size.
     """
     dataset = FileDataset('test.txt', chunk_size=len(EXAMPLE_FILE_DATA) + 1)
@@ -58,6 +60,7 @@ def test_r_no_stream(mock_text_file) -> None:
 
 def test_r_stream_1(mock_text_file) -> None:
     """Test the FileDataset class on a text file, with streaming.
+
     Use a chunk size of 2.
     """
     dataset = FileDataset('test.txt', chunk_size=2)
@@ -67,6 +70,7 @@ def test_r_stream_1(mock_text_file) -> None:
 
 def test_r_stream_2(mock_text_file) -> None:
     """Test the FileDataset class on a text file, with streaming.
+
     Use a chunk size larger than the file size.
     """
     dataset = FileDataset('test.txt', chunk_size=len(EXAMPLE_FILE_DATA) + 1)

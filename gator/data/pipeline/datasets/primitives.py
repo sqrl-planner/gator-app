@@ -2,26 +2,37 @@
 from typing import Any, Iterator, Optional, Type, Union
 
 import gator.data.pipeline.datasets as datasets
-import gator.data.pipeline.transforms as transforms
 
 
 class LambdaDataset(datasets.Dataset):
     """A dataset that just calls a function."""
 
     def __init__(self, fn: callable) -> None:
+        """Initialise a LambdaDataset.
+
+        Args:
+            fn: A callable that returns the data contained in this dataset.
+        """
         self._fn = fn
 
     def get(self) -> Any:
+        """Return the data contained in this dataset.
+
+        Remarks:
+            This is a convenience method for calling the function.
+        """
         return self._fn()
 
 
 class ListDataset(datasets.Dataset):
     """A dataset that consists of a series of elements in ordered form.
 
-    List datasets are iterable, meaning that they can be used as a sequence.
-    Iterating over a list dataset will yield the elements lazily, whereas
-    calling the `get` method will return the entire data at once.
+    List datasets are iterable, meaning that they can be used as a
+    sequence. Iterating over a list dataset will yield the elements
+    lazily, whereas calling the `get` method will return the entire data
+    at once.
     """
+
     # Private Instance Attributes:
     #   _data: The data contained in this dataset.
     _data: Union[list, 'ListDataset']
@@ -39,8 +50,9 @@ class ListDataset(datasets.Dataset):
         self._data = data
 
     def __iter__(self) -> Iterator:
-        """Return an iterator over the elements of the dataset. Datasets
-        will be evaluated through a `get` method call.
+        """Return an iterator over the elements of the dataset.
+
+        Datasets will be evaluated through a `get` method call.
         """
         if isinstance(self._data, self.__class__):
             return self._data.__iter__()
@@ -52,16 +64,15 @@ class ListDataset(datasets.Dataset):
         """Return the entire dataset as a single object."""
         return list(self)
 
-    def map(self, fn: Union[transforms.DataTransformFn,
-                            Type[transforms.DataTransform]]) \
+    def map(self, fn: Union[callable, Type]) \
             -> 'MapDataset':  # noqa: F821
-        """Applies a data transform element-wise to the dataset.
+        """Apply a data transform element-wise to the dataset.
 
         Args:
             fn: A data transform function. Can either be a callable, an
-                instance of `DataTransform`, or a type that is a subclass of
-                `DataTransform`. In the latter case, the data transform will
-                be instantiated with no args or kwargs.
+                instance of a callable class, or a type for a callable class.
+                In the latter case, the data transform will be instantiated
+                with no args or kwargs.
 
         Returns:
             A new dataset with the data transform applied.
@@ -90,11 +101,13 @@ class ListDataset(datasets.Dataset):
         return ops.FlattenDataset(self)
 
     def __str__(self) -> str:
+        """Return a string representation of the dataset."""
         return f'ListDataset({str(self._data)})'
 
 
 class DictDataset(datasets.Dataset):
     """A dataset that consists of key-value pairs, e.g. a dictionary."""
+
     # Private Instance Attributes:
     #   _data: The data contained in this dataset.
     _data: dict
@@ -110,17 +123,18 @@ class DictDataset(datasets.Dataset):
     def extract_keys(self, keys: list[Any],
                      defaults: Optional[Union[dict, Any]] = None) \
             -> 'ListDataset':
-        """Extract the specified keys from this dictionary dataset. Return a
-        new list dataset where the i-th element is the value of the i-th key
-        in the specified list.
-
-        If a key is not found, the corresponding value in the new dataset will
-        be the default value specified. If no  default value is specified, it
-        will be set to None instead.
+        """Extract the specified keys from this dictionary dataset.
 
         Args:
             keys: The keys to extract. A list of keys.
             defaults: A single value or dictionary of default values.
+
+        Returns:
+            A new list dataset where the i-th element is the value of the i-th
+            key in the specified list. If a key is not found, the
+            corresponding value in the new dataset will be the default value
+            specified. If no default value is specified, it will be set to
+            None instead.
         """
         if isinstance(keys, str):
             keys = [keys]
@@ -133,23 +147,33 @@ class DictDataset(datasets.Dataset):
 
     def extract_key(self, key: Any, default: Any = None) \
             -> 'Dataset':  # noqa: F821
-        """Assume that this dataset consists of dictionary elements. Extract
-        the value of the specified key from every dictionary element so that
-        the new dataset elements are a single value corresponding to the
-        value at the specified key.
+        """Extract the specified key from this dictionary dataset.
 
-        This is a shorthand for `self.extract_keys([key]).at(0)`.
+        Remarks:
+            - Assume that this dataset consists of dictionary elements.
+            - This is a shorthand for `self.extract_keys([key]).at(0)`.
+
+        Args:
+            key: The key to extract.
+            default: The default value to use if the key is not found.
+
+        Returns:
+            A new dataset whose elements are a single value corresponding to
+            the value at the specified key.
         """
         return self.extract_keys([key], defaults={key: default}).at(0)
 
     def kv_pairs(self) -> 'ListDataset':
-        """Assume that this dataset consists of dictionary elements. Extract
-        the key-value pairs from every dictionary element so that the resultant
-        dataset consists of lists of tuples, where each tuple contains a key
-        and a value. Return a new dataset with key-value pairs.
+        """Assume that this dataset consists of dictionary elements.
+
+        Extract the key-value pairs from every dictionary element so
+        that the resultant dataset consists of lists of tuples, where
+        each tuple contains a key and a value. Return a new dataset with
+        key-value pairs.
         """
         import gator.data.pipeline.datasets.ops as ops
         return ops.KVPairsDataset(self)
 
     def __str__(self) -> str:
+        """Return a string representation of the dataset."""
         return f'DictDataset({str(self._data)})'

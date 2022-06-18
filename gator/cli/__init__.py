@@ -1,3 +1,4 @@
+"""Gator command-line interface."""
 import typer
 
 import gator.cli.data as data_cli

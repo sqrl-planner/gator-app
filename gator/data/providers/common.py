@@ -7,7 +7,7 @@ from gator.models.timetable import Session
 
 
 class TimetableDataset(Dataset):
-    """A dataset that contains course timetable information for a single session.
+    """Dataset that contains course timetable information for a single session.
 
     Instance Attributes:
         session: The session for which the timetable data is provided.
@@ -32,6 +32,7 @@ class TimetableDataset(Dataset):
     @abstractclassmethod
     def _get_latest_session(cls, verify: bool = False) -> Session:
         """Return the most up-to-date session from the timetable data source.
+
         Raise a ValueError if the session could not be found.
 
         Args:

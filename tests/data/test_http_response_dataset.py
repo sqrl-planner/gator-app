@@ -63,8 +63,10 @@ def test_get_no_stream_1(http_server: HTTPServer) -> None:
 
 
 def test_get_no_stream_2(http_server: HTTPServer) -> None:
-    """Test the HttpResponseDataset class in GET mode without streaming,
-    but when chunk size is set. Expects to get the same result as above.
+    """Test the HttpResponseDataset class in GET mode without streaming, but
+    when chunk size is set.
+
+    Expects to get the same result as above.
     """
     dataset = HttpResponseDataset(http_server.url_for('/small'),
                                   method='GET',
@@ -75,9 +77,8 @@ def test_get_no_stream_2(http_server: HTTPServer) -> None:
 
 
 def test_get_stream_1(http_server: HTTPServer) -> None:
-    """Test the HttpResponseDataset class in GET mode with streaming but no
-    set chunk size.
-    """
+    """Test the HttpResponseDataset class in GET mode with streaming but no set
+    chunk size."""
     dataset = HttpResponseDataset(http_server.url_for('/large'),
                                   method='GET',
                                   stream=True,
@@ -95,9 +96,8 @@ def test_get_stream_1(http_server: HTTPServer) -> None:
 
 
 def test_get_stream_2(http_server: HTTPServer) -> None:
-    """Test the HttpResponseDataset class in GET mode with streaming and a
-    set chunk size of 32.
-    """
+    """Test the HttpResponseDataset class in GET mode with streaming and a set
+    chunk size of 32."""
     dataset = HttpResponseDataset(http_server.url_for('/large'),
                                   method='GET',
                                   stream=True,
@@ -128,8 +128,8 @@ def test_post(http_server: HTTPServer) -> None:
 
 
 def test_decode_unicode(http_server: HTTPServer) -> None:
-    """Test the HttpResponseDataset class in GET mode without streaming
-    and with decode_unicode True."""
+    """Test the HttpResponseDataset class in GET mode without streaming and
+    with decode_unicode True."""
     dataset = HttpResponseDataset(http_server.url_for('/small'),
                                   method='GET',
                                   stream=False,

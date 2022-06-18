@@ -5,12 +5,13 @@ from flask import Flask
 
 
 def create_app(settings_override: Any = None) -> Flask:
-    """
-    Create a Flask application using the app factory pattern. eturn the app
-    instance.
+    """Create a Flask application using the app factory pattern.
 
     Args:
         settings_override: Override settings
+
+    Returns:
+        A Flask application
     """
     app = Flask(__name__)
     app.config.from_object('config.app_settings')
