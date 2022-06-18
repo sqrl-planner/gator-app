@@ -1,8 +1,8 @@
-import typer
 from datetime import datetime
 from typing import Any, Optional
 
-from yaspin import yaspin, Spinner
+import typer
+from yaspin import Spinner, yaspin
 from yaspin.spinners import Spinners
 
 

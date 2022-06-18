@@ -1,9 +1,8 @@
 """Test FileDataset implementations."""
-from gator.data.pipeline.datasets.io import FileDataset
-
 import pytest
 from pytest_mock import MockerFixture
 
+from gator.data.pipeline.datasets.io import FileDataset
 
 EXAMPLE_FILE_DATA = b'abcdefghijklmnopqrstuvwxyz'
 

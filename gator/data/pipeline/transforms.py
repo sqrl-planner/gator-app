@@ -1,8 +1,7 @@
 """Built-in data transforms."""
 import json
 from abc import ABC, abstractmethod
-from typing import Union, Callable, Generic, TypeVar
-
+from typing import Callable, Generic, TypeVar, Union
 
 T = TypeVar('T')
 U = TypeVar('U')

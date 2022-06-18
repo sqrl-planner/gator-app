@@ -1,8 +1,7 @@
 import typer
 
-from gator.app import create_app
 import gator.cli.data as data_cli
-
+from gator.app import create_app
 
 app = typer.Typer()
 app.add_typer(data_cli.app, name='data')

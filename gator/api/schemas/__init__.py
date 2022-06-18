@@ -3,7 +3,6 @@ from flask_restx import Api
 from gator.api.schemas.common import ALL_SCHEMAS as COMMON_SCHEMAS
 from gator.api.schemas.timetable import ALL_SCHEMAS as TIMETABLE_SCHEMAS
 
-
 ALL_SCHEMAS = COMMON_SCHEMAS + TIMETABLE_SCHEMAS
 
 

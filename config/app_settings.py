@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 from typing import Optional
 
-
 APP_NAME = os.getenv('COMPOSE_PROJECT_NAME', 'gator')
 
 SECRET_KEY = os.getenv('SECRET_KEY', None)
