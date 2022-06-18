@@ -2,7 +2,7 @@
 name = "gator"
 version = "0.1.0"
 description = "Central dataset aggregator and content manager for sqrl planner"
-authors = ["galacticglum <nerftactic09@gmail.com>"]
+authors = ["galacticglum <verchshon@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
