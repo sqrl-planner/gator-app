@@ -99,7 +99,7 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
         typer.echo(', '.join([
             f'{value} {key}' for key, value in status_freq.items()
         ])
-    )
+        )
 
 
 @repo_app.command('list')
