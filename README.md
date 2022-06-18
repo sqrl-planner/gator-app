@@ -48,6 +48,11 @@ If your database is empty, you'll need timetable information to use gator. To pu
 ```shell
 gator data pull
 ```
+or outside the Docker container, run
+```shell
+docker-compose run web gator data pull
+```
+
 For more information on this command and the data CLI, see the [data cli](/docs/data_cli.md) documentation.
 
 ### Automating data syncing
