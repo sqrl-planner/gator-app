@@ -8,8 +8,9 @@ from gator.data.pipeline.datasets import Dataset
 
 
 class FileDataset(Dataset):
-    """A dataset that reads from a file. This is a thin wrapper around
-    the `open` builtin.
+    """A dataset that reads from a file.
+
+    This is a thin wrapper around the `open` builtin.
 
     Default behaviour is to read the file in binary (rb) mode and yield
     the entire file as a single chunk.
@@ -48,11 +49,13 @@ class FileDataset(Dataset):
 
 
 class HttpResponseDataset(Dataset):
-    """A dataset that performs an HTTP request and reads the response. This is
-    a thin wrapper around the `requests.request` method.
+    """A dataset that performs an HTTP request and reads the response.
 
-    Default behaviour is to perform a GET request with no additional headers,
-    query parameters, or other arguments, and with streaming disabled.
+    This is a thin wrapper around the `requests.request` method.
+
+    Default behaviour is to perform a GET request with no additional
+    headers, query parameters, or other arguments, and with streaming
+    disabled.
     """
 
     def __init__(self, url: str, method: str = 'GET', stream: bool = False,
@@ -80,12 +83,13 @@ class HttpResponseDataset(Dataset):
         self._kwargs = kwargs
 
     def json(self) -> 'DictDataset':  # noqa: F821
-        """Return the data as JSON. This will read the entire response into
-        memory, so it is not recommended to use this method if streaming is
-        required.
+        """Return the data as JSON.
 
-        If the response is not JSON or response fails to parse as JSON, an
-        empty dictionary is returned.
+        This will read the entire response into memory, so it is not
+        recommended to use this method if streaming is required.
+
+        If the response is not JSON or response fails to parse as JSON,
+        an empty dictionary is returned.
         """
         from gator.data.pipeline.datasets.primitives import (DictDataset,
                                                              LambdaDataset)
@@ -104,5 +108,6 @@ class HttpResponseDataset(Dataset):
             return chunks
 
     def _do_request(self) -> requests.Response:
+        """Perform the HTTP request and return the response."""
         return requests.request(self._method, self._url,
                                 stream=self._stream, **self._kwargs)

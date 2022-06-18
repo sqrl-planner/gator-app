@@ -16,9 +16,11 @@ SERVER_NAME = os.getenv(
 
 def _get_mongodb_credential(credential_type: str,
                             default: Optional[str] = None) -> str:
-    """Return a credential for the MongoDB database. Will first check
-    the environment variable MONGODB_{credential_type}, and if that is not set,
-    will check MONGODB_INITDB_ROOT_{credential_type}.
+    """Return a credential for the MongoDB database.
+
+    Will first check the environment variable MONGODB_{credential_type},
+    and if that is not set, will check
+    MONGODB_INITDB_ROOT_{credential_type}.
     """
     assert credential_type in {'username', 'password'},\
         'credential_type must be either "username" or "password"'

@@ -1,3 +1,4 @@
+"""Base repo definition."""
 import fnmatch
 import uuid
 from dataclasses import dataclass, field
@@ -24,8 +25,9 @@ class Repository:
         slug: A short string that uniquely identifies this repository.
         name: A human-readable name for this repository.
         description: A short description of this repository.
- metadata that is relevant to this repository.
+        metadata: A dictionary of metadata about this repository.
     """
+
     datasets: list[Dataset]
     slug: str
     name: Optional[str] = None
@@ -44,13 +46,15 @@ class RepositoryRegistry:
     """A collection of repositories that are accessible to the app."""
 
     def __init__(self) -> None:
+        """Initialise the repository registry."""
         self._routes = Mapper()
         self._route_metadata = {}
 
     def route(self, pattern: str, **kwargs: Any) -> callable:
-        """A decorator that is used to register a repo function for a
-        given rule. This does the same thing as the `add_rule` method
-        but is intended for decorator usage::
+        """Register a repo function for a given rule.
+
+        This does the same thing as the `add_rule` method but is intended for
+        decorator usage::
 
             @registry.route('/books/:batch')
             def book_repo(batch: int) -> Repository:
@@ -141,6 +145,7 @@ class RepositoryRegistry:
     @staticmethod
     def _try_convert_params(params: dict, type_hints: dict) -> None:
         """Try to convert parameters according to type hints.
+
         Mutate the params argument.
         """
         for k, v in params.items():
@@ -155,7 +160,7 @@ class RepositoryRegistry:
 
 
 def _ensure_initialised(f: callable) -> callable:
-    """A decorator to ensure the repolist has been initted."""
+    """Decorate a class method to ensure that the registry is initialised."""
     @wraps(f)
     def wrapper(self: 'RepositoryRegistry', *args: Any, **kwargs: Any) -> Any:
         assert self._fp is not None and self._registry is not None,\
@@ -169,13 +174,24 @@ class RepositoryList:
 
     def __init__(self, fp: Optional[Path] = None,
                  registry: Optional[RepositoryRegistry] = None) -> None:
+        """Initialise the repository list.
+
+        Args:
+            fp: The path to the repolist yml file.
+            registry: A RepositoryRegistry instance.
+        """
         self._fp = fp
         self._registry = registry
 
     @_ensure_initialised
     def repos_iter(self) -> Iterator[tuple[Repository, str]]:
-        """Return an iterator of tuples of the form (repo, route) giving all the
-        repositories in this repolist along with their registry route."""
+        """Iterate over all repositories in the repolist.
+
+        Yields:
+            A tuple of the form (repo, route) for each repository in the
+            repolist giving the repository and the route that was used to
+            resolve it.
+        """
         for pattern in self.routes:
             repo = self._registry.match(pattern)
             if repo is not None:
@@ -183,15 +199,21 @@ class RepositoryList:
 
     @_ensure_initialised
     def get_all_repos(self) -> list[tuple[Repository, str]]:
-        """Return a list of tuples of the form (repo, route) giving all the
-        repositories in this repolist along with their registry route."""
+        """Get all the repositories in this repolist.
+
+        Returns:
+            A list of tuples of the form (repo, route) giving all the
+            repositories in this repolist along with their registry route.
+        """
         return list(self.repos_iter())
 
     @_ensure_initialised
     def filter(self, query: str) -> Iterator[tuple[Repository, str]]:
-        """Filter the repos by a query string. Returns a list of tuples of
-        the form (repo, route) giving all the repositories in this repolist
-        along with their registry route with slug or route matching the query.
+        """Filter the repos by a query string.
+
+        Returns a list of tuples of the form (repo, route) giving all
+        the repositories in this repolist along with their registry
+        route with slug or route matching the query.
         """
         for repo, route in self.repos_iter():
             match_slug = fnmatch.fnmatch(repo.slug, query)

@@ -1,3 +1,4 @@
+"""All schemas for the gator API."""
 from flask_restx import Api
 
 from gator.api.schemas.common import ALL_SCHEMAS as COMMON_SCHEMAS

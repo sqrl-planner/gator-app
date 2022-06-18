@@ -63,17 +63,19 @@ def paginate_query(queryset: QuerySet, page_size: int = 20,
 
 def pagination_schema_for(model: Model,
                           objects_field_name: Optional[str] = None) -> Model:
-    """Create the pagination schema for a model. The pagination schema contains
-    the following fields:
+    """Create the pagination schema for a model.
+
+    The pagination schema contains the following fields:
         - objects: The list of objects in the page (of type `model`)
         - last_id: The ID of the last item in the page.
-
-    Return a copy of the model with the fields added.
 
     Args:
         model: The model to add the pagination fields to.
         objects_field_name: The name of the field that contains the list of
             objects in the page. Defaults to plural of the model name.
+
+    Returns:
+        A copy of the model with the pagination fields added.
     """
     if objects_field_name is None:
         import inflection

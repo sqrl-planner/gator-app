@@ -12,6 +12,7 @@ from gator.models.common import Time
 
 class MeetingDay(Enum):
     """A class representing the day of the week."""
+
     MONDAY = 'MO'
     TUESDAY = 'TU'
     WEDNESDAY = 'WE'
@@ -33,6 +34,7 @@ class SectionMeeting(db.EmbeddedDocument):
         assigned_room_2: A string representing the second assigned room for
             this meeting, or None if there is no second assigned room.
     """
+
     day: MeetingDay = db.EnumField(MeetingDay, required=True)
     start_time: Time = db.EmbeddedDocumentField(Time, required=True)
     end_time: Time = db.EmbeddedDocumentField(Time, required=True)
@@ -42,6 +44,7 @@ class SectionMeeting(db.EmbeddedDocument):
 
 class SectionTeachingMethod(Enum):
     """A class representing the teaching method for a section."""
+
     LECTURE = 'LEC'
     TUTORIAL = 'TUT'
     PRACTICAL = 'PRA'
@@ -49,6 +52,7 @@ class SectionTeachingMethod(Enum):
 
 class SectionDeliveryMode(Enum):
     """A class representing mode of delivery for a section."""
+
     CLASS = 'CLASS'
     ONLINE_SYNC = 'ONLSYNC'
     ONLINE_ASYNC = 'ONLASYNC'
@@ -68,6 +72,7 @@ class Instructor(db.EmbeddedDocument):
         first_name: The first name of this instructor.
         last_name: The last name of this instructor.
     """
+
     first_name: str = db.StringField(required=True)
     last_name: str = db.StringField(required=True)
 
@@ -93,6 +98,7 @@ class Section(db.EmbeddedDocument):
         enrolment_indicator: A string representing the enrollment indicator
             for this section, or None if there is no enrollment indicator.
     """
+
     teaching_method: Optional[SectionTeachingMethod] = db.EnumField(
         SectionTeachingMethod, null=True
     )
@@ -112,36 +118,39 @@ class Section(db.EmbeddedDocument):
 
     @property
     def code(self) -> str:
-        """Return a string representing the code of this section. This is a
-        combination of the teaching method and the section number, separated
-        by a hyphen.
+        """Return a string representing the code of this section.
+
+        This is a combination of the teaching method and the section
+        number, separated by a hyphen.
         """
         return f'{self.teaching_method.value}-{self.section_number}'
 
 
 class CourseTerm(Enum):
     """The course term."""
+
     FIRST_SEMESTER = 'F'
     SECOND_SEMESTER = 'S'
     FULL_YEAR = 'Y'
 
 
 class Campus(Enum):
-    """University campus"""
+    """University campus."""
+
     ST_GEORGE = 'UTSG'
     SCARBOROUGH = 'UTSC'
     MISSISSAUGA = 'UTM'
 
 
 class Organisation(db.Document):
-    """
-    A class representing a department (which offers courses).
+    """A class representing a department (which offers courses).
 
     Instance Attributes:
         code: A unique string representing this organisation.
         name: The full name of this organisation.
         campus: The campus this organisation is located at.
     """
+
     code: str = db.StringField(primary_key=True)
     name: str = db.StringField(required=True)
     campus: Campus = db.EnumField(Campus, required=True)
@@ -162,8 +171,7 @@ class Session:
 
     @property
     def code(self) -> str:
-        """
-        Return the session code for this Session.
+        """Return the session code for this Session.
 
         The session code is a five-length string where the first four characters denote the session
         year, and the last character denotes whether it is a fall/winter (9) or summer session (5).
@@ -194,11 +202,17 @@ class Session:
         return f'{term} {self.year}'
 
     def __str__(self) -> str:
+        """Return this session as a string.
+
+        The output string is the session code. See `code` for more
+        information.
+        """
         return self.code
 
     @classmethod
     def parse(cls, session_code: str) -> 'Session':
         """Return an instance Session representing the given session code.
+
         Raise a ValueError if the session code is not formatted properly.
 
         >>> Session.parse('20205') == Session(year=2020, summer=True)
@@ -245,6 +259,7 @@ class Course(db.Document):
         web_timetable_instructions: Additional timetable information.
         delivery_instructions: Additional delivery instruction information.
     """
+
     id: str = db.StringField(primary_key=True)
     organisation: Organisation = db.ReferenceField('Organisation')
     code: str = db.StringField()

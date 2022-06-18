@@ -1,3 +1,4 @@
+"""CLI helpers."""
 from datetime import datetime
 from typing import Any, Optional
 
@@ -7,9 +8,22 @@ from yaspin.spinners import Spinners
 
 
 class SpinnerProgressBar:
-    def __init__(self, text: str, total: Optional[int] = None, timer: bool = False):
+    """A yaspin extension for displaying progress with the spinner."""
+
+    def __init__(self, text: str, total: Optional[int] = None,
+                 timer: bool = False, show_progress: bool = True) -> None:
+        """Initialise a new SpinnerProgressBar.
+
+        Args:
+            text: The text to display in the spinner.
+            total: The total number of steps to complete.
+            timer: Whether to display the elapsed time.
+            show_progress: Whether to display the progress bar.
+        """
         self._text = text
         self._total = total
+        self._show_progress = show_progress
+
         self._current = 0
 
         if timer:
@@ -18,9 +32,23 @@ class SpinnerProgressBar:
             self._start = None
 
     def step(self, processed: int = 1):
+        """Increment the progress bar.
+
+        Args:
+            processed: The number of steps processed.
+        """
         self._current += processed
 
     def __str__(self):
+        """Return the progress bar string.
+
+        Output is in the format:
+
+            text elapsed? (current/total?)
+
+        where the elapsed time is only shown if the timer is enabled and the progress
+        is only shown if the total is known and show_progress is True.
+        """
         if self._start is None:
             time_elapsed = ''
         else:
@@ -28,10 +56,13 @@ class SpinnerProgressBar:
             delta = now - self._start
             time_elapsed = f'{delta.total_seconds():.1f}s'
 
-        if self._total is None:
-            progress = ''
+        if self._show_progress:
+            if self._total is None:
+                progress = f'({self._current}/?)'
+            else:
+                progress = f'({self._current}/{self._total})'
         else:
-            progress = f'({self._current}/{self._total})'
+            progress = ''
 
         return ' '.join([
             self._text,
@@ -41,12 +72,14 @@ class SpinnerProgressBar:
 
 
 def format_spinner_frames(spinner: Spinner, format: str):
-    """Format the spinner's frames. Return a copy of the spinner with the frames
-    formatted.
+    """Format the spinner's frames.
 
     Args:
         spinner: The spinner to format.
         format: The format string. Use {0} to refer to the frame.
+
+    Returns:
+        A copy of the Spinner object with the frames formatted.
     """
     return Spinner(
         [format.format(frame) for frame in spinner.frames],
@@ -57,8 +90,10 @@ def format_spinner_frames(spinner: Spinner, format: str):
 def section_spinner(text: str, **kwargs: Any) -> Spinner:
     """Return a spinner that will be used to show a section of work.
 
-    NOTE: Sets the text attribute of the spinner to an instance of SpinnerProgressBar.
-    Use `sp.text.step()` to increment the progress, where `sp` is the return value.
+    Remarks:
+        Sets the text attribute of the spinner to an instance of
+        SpinnerProgressBar. Use `sp.text.step()` to increment the progress,
+        where `sp` is the return value.
 
     Args:
         text: The text to show in the spinner.
