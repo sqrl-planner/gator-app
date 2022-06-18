@@ -12,10 +12,13 @@ RUN apt-get update \
 
 USER python
 
-COPY --chown=python:python requirements*.txt ./
+COPY --chown=python:python pyproject.toml ./
+COPY --chown=python:python poetry.lock ./
+
 COPY --chown=python:python bin/ ./bin
 
-RUN chmod 0755 bin/* && bin/pip3-install
+# System dependencies
+RUN chmod 0755 bin/* && bin/poetry-install
 
 ARG FLASK_ENV="production"
 ENV FLASK_ENV="${FLASK_ENV}" \
@@ -31,8 +34,9 @@ COPY --chown=python:python . .
 RUN if [ "${FLASK_ENV}" != "development" ]; then \
   ln -s /public /app/public && rm -rf /app/public; fi
 
-RUN pip3 install --user --no-cache-dir .  # run setup.py
-
 EXPOSE 5000
+
+# Project dependencies
+RUN POETRY_VIRTUALENVS_CREATE=false poetry install --no-interaction --no-ansi
 
 CMD ["gunicorn", "-c", "python:config.gunicorn", "gator.app:create_app()"]
