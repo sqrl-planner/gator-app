@@ -19,8 +19,8 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          pip install -e .
+          pip install poetry
+          poetry install
       - name: Test with pytest
         run: |
           pytest
