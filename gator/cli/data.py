@@ -3,10 +3,9 @@ import textwrap
 
 import typer
 from tabulate import tabulate
-from yaspin import yaspin
-from yaspin.spinners import Spinners
 
 from gator.extensions.repolist import repolist
+from gator.cli.utils import section_spinner
 
 app = typer.Typer()
 repo_app = typer.Typer()
@@ -24,54 +23,81 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
             `books-*` will match all repositories that start with
             `books-`. Default to '*' to match all repositories.
     """
-    def _sp_style(sp):
-        return sp.green.bold
-
     repos = []
-    with _sp_style(yaspin(Spinners.material, text='Collecting repolist', timer=True)) as sp:
+    with section_spinner('Collecting repolist', timer=True) as sp:
         # Filter repos by pattern
         for repo, route in repolist.filter(pattern):
-            with sp.hidden():
-                typer.echo(' '.join(
-                    '> ',
-                    typer.style(f'{repo.slug} ', bold=True,
-                                fg=typer.colors.BRIGHT_WHITE),
-                    typer.style('resolved from ', italic=True),
-                    typer.style(route, fg=typer.colors.BLUE, italic=True)
-                ))
+            # Increment progress
+            sp.text.step()
 
             repos.append((repo, route))
 
-        # finalize
-        repository_plural = 'repositories' if len(repos) > 1 else 'repository'
-        sp.text += f' - FOUND {len(repos)} {repository_plural}'
+            # Print info about resolved repo
+            output = ' '.join([
+                '=>',
+                typer.style(f'{repo.slug}', bold=True,
+                            fg=typer.colors.BRIGHT_WHITE),
+                typer.style('resolved from', italic=True),
+                typer.style(route, fg=typer.colors.BLUE, italic=True)
+            ])
+            sp.write(output)
+
         sp.ok()
 
     # Print info about repositories
     if len(repos) > 0:
-        typer.echo(' '.join(
-            'Pulling data from collected repositories: ',
+        typer.echo(' '.join([
+            'Pulling data from collected repositories:',
             ', '.join(repo.slug for repo, _ in repos)
-        ))
+        ]))
     else:
         typer.echo('No repositories found.', err=True)
 
     # Pull and aggregate records
     records = []
-    for repo, route in repos:
-        slug = typer.style(repo.slug, fg=typer.colors.BRIGHT_WHITE, bold=True)
-        with _sp_style(yaspin(Spinners.material, text=f'Pulling {slug}', timer=True)) as sp:
+    with section_spinner('Pulling', total=len(repos), timer=True) as sp:
+        for repo, route in repos:
+            # Increment progress
+            sp.text.step()
+
+            # Print info about repository
+            slug = typer.style(repo.slug, fg=typer.colors.BRIGHT_WHITE, bold=True)
+            sp.write(f'=> {slug}')
+
+            # Pull records from the repository
             records.extend(repo.pull())
-            # finalize
-            sp.text += ' FINISHED'
-            sp.ok()
+
+        sp.ok()
 
     # Sync records with the database
-    with yaspin(text=f'Syncing {len(records)} records with the database', timer=True) as sp:
+    status_freq = dict(created=0, updated=0, skipped=0)
+    with section_spinner('Syncing', total=len(records), timer=True) as sp:
         for record in records:
-            # TODO: Move this to a function
-            # Check if the record already exists
-            ...
+            # Increment progress
+            sp.text.step()
+
+            # Sync record with the database
+            status = record.sync(force=force)
+
+            status_freq[status] = status_freq.get(status, 0) + 1
+
+            # Style status based on success or failure
+            if status in {'updated', 'created'}:
+                status = typer.style(status.upper(), fg=typer.colors.GREEN)
+            elif status == 'skipped':
+                status = typer.style(status.upper(), fg=typer.colors.YELLOW)
+            else:
+                status = typer.style('ERROR', fg=typer.colors.RED)
+
+            slug = record.name or record.id
+            sp.write(f' => {status} {slug}')
+
+        sp.ok()
+
+    # Print status summary
+    if len(status_freq) > 0:
+        typer.echo(', '.join([f'{value} {key}'
+                              for key, value in status_freq.items()]))
 
 
 @repo_app.command('list')

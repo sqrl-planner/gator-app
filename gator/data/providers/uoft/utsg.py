@@ -1,6 +1,5 @@
 """Data pipelines for UTSG datasets."""
 import re
-import json
 from typing import Optional, Union
 
 import requests
@@ -17,7 +16,7 @@ from gator.data.pipeline.datasets import Dataset
 from gator.data.pipeline.datasets.io import HttpResponseDataset
 
 from gator.data.providers.common import TimetableDataset
-from gator.data.utils import nullable_convert, int_or_none
+from gator.data.utils import nullable_convert, int_or_none, make_hash_sha256
 
 
 class UtsgArtsciTimetableDataset(TimetableDataset):
@@ -109,14 +108,12 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
             campus=Campus.ST_GEORGE,
         )
 
-        payload_hash = json.dumps(payload, sort_keys=True,
-                                  separators=(',', ':'), ensure_ascii=True,
-                                  default=str)
-
+        payload_hash = str(make_hash_sha256(payload))
         return Record(
-            id=full_code,
+            id=course.id,
             doc=course,
-            hash=payload_hash
+            hash=payload_hash,
+            name='courses/{}'.format(full_code),
         )
 
     def _parse_section(self, payload: dict) -> Section:
