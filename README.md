@@ -1,34 +1,42 @@
 # gator
 Central dataset aggregator and content manager for sqrl planner
 
- ## Running the server
- You'll need to have [Docker installed](https://docs.docker.com/get-docker/).
+## Package manager
+Gator uses the [`poetry`](https://python-poetry.org/) package manager to manage its dependencies. To install the dependencies, run the following command:
+```
+poetry install
+```
+See the [`poetry`](https://python-poetry.org/) documentation for more information and
+installation instructions.
 
- #### Clone this repo and move into the directory
- ```shell
- git clone https://github.com/sqrl-planner/gator.git
- cd gator
- ```
+## Running the server
+You'll need to have [Docker installed](https://docs.docker.com/get-docker/).
 
- #### Copy starter files
- ```shell
- cp .env.example .env
- ```
- The defaults are for running in *development* mode. Go through each variable in the file and make sure it is properly set. You will likely need to update the credentials.
+#### Clone this repo and move into the directory
+```shell
+git clone https://github.com/sqrl-planner/gator.git
+cd gator
+```
 
- #### Build the Docker image and start the Docker container
+#### Copy starter files
+```shell
+cp .env.example .env
+```
+The defaults are for running in *development* mode. Go through each variable in the file and make sure it is properly set. You will likely need to update the credentials.
+
+#### Build the Docker image and start the Docker container
 
 You start the Docker container by running
 
- *The first time you run this, it's going to take 5-10 minutes depending on your internet connection and hardware.*
- ```shell
- docker-compose up
- ```
- This will build the image, if needed, and once built, automatically spin up a container with the image. If you'd like to force a rebuild of the image, you may additionally pass an optional ``--build`` flag to the above command.
+*The first time you run this, it's going to take 5-10 minutes depending on your internet connection and hardware.*
+```shell
+docker-compose up
+```
+This will build the image, if needed, and once built, automatically spin up a container with the image. If you'd like to force a rebuild of the image, you may additionally pass an optional ``--build`` flag to the above command.
 
- #### Stopping the Docker container
+#### Stopping the Docker container
 
- You can stop running the container by running ``docker-compose down``.
+You can stop running the container by running ``docker-compose down``.
 
 #### Setting up the database
 
@@ -40,7 +48,7 @@ Alterntively, you can run an instance locally or use a number of database provid
 
 First, copy the repolist starter file.
 ```shell
- cp config/repolist.example.yml config/repolist.yml
+cp config/repolist.example.yml config/repolist.yml
 ```
 Remember to update the ``REPOLIST_FILE`` environment variable if you're changing the path of this file. The repolist file contains a list of data repositories to monitor. By default, it is setup to monitor the latest version of every implemented dataset (e.g. utsg artsci timetable, etc...)
 
