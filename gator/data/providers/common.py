@@ -1,9 +1,9 @@
 """Common definitions for data providers."""
-from typing import Optional, Union
 from abc import abstractclassmethod
+from typing import Optional, Union
 
-from gator.models.timetable import Session
 from gator.data.pipeline.datasets import Dataset
+from gator.models.timetable import Session
 
 
 class TimetableDataset(Dataset):

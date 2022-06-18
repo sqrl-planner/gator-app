@@ -1,10 +1,10 @@
 """Model data classes for timetable."""
-import re
 import math
-from enum import Enum
-from typing import Optional
-from functools import lru_cache
+import re
 from dataclasses import dataclass
+from enum import Enum
+from functools import lru_cache
+from typing import Optional
 
 from gator.extensions.db import db
 from gator.models.common import Time

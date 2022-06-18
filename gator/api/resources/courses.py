@@ -1,13 +1,10 @@
 from flask import request
 from flask_restx import Namespace, Resource
 
-from gator.models.timetable import Course
+from gator.api.helpers.pagination import paginate_query, pagination_schema_for
+from gator.api.helpers.pagination import reqparser as pagination_reqparser
 from gator.api.schemas.timetable import course_schema
-from gator.api.helpers.pagination import (
-    reqparser as pagination_reqparser,
-    paginate_query, pagination_schema_for
-)
-
+from gator.models.timetable import Course
 
 # Define API namespace
 ns = Namespace('courses', description='Course related operations')

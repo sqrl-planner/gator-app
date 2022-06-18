@@ -65,13 +65,22 @@ If you prefer to work natively, rather than bootstraping the application in a Do
 ## Tools
 
 #### Linting the codebase
+For detecting style issues, run
 ```
 flake8
 ```
+NOTE: this will not fix any issues, it just detects them.
 
 #### Formatting the codebase
+For automatically formatting the codebase, run
 ```
 autopep8 --in-place --recursive .
+```
+For more information on this command, see the [autopep8](https://pypi.python.org/pypi/autopep8) documentation.
+
+For automatically sorting imports, run
+```
+isort .
 ```
 
 #### Running tests

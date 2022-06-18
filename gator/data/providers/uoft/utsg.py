@@ -5,18 +5,15 @@ from typing import Optional, Union
 import requests
 from bs4 import BeautifulSoup
 
-from gator.models.common import Record
-from gator.models.timetable import (
-    Session, Campus, Organisation, Instructor,
-    Course, CourseTerm,
-    Section, SectionMeeting, SectionTeachingMethod, SectionDeliveryMode,
-    MeetingDay, Time
-)
 from gator.data.pipeline.datasets import Dataset
 from gator.data.pipeline.datasets.io import HttpResponseDataset
-
 from gator.data.providers.common import TimetableDataset
-from gator.data.utils import nullable_convert, int_or_none, make_hash_sha256
+from gator.data.utils import int_or_none, make_hash_sha256, nullable_convert
+from gator.models.common import Record
+from gator.models.timetable import (Campus, Course, CourseTerm, Instructor,
+                                    MeetingDay, Organisation, Section,
+                                    SectionDeliveryMode, SectionMeeting,
+                                    SectionTeachingMethod, Session, Time)
 
 
 class UtsgArtsciTimetableDataset(TimetableDataset):

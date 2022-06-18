@@ -1,17 +1,17 @@
-import uuid
 import fnmatch
+import uuid
+from dataclasses import dataclass, field
+from functools import wraps
 from pathlib import Path
 from pydoc import locate
-from functools import wraps
-from dataclasses import dataclass, field
-from typing import Optional, Any, Iterator, get_type_hints
+from typing import Any, Iterator, Optional, get_type_hints
 
 import yaml
 from routes import Mapper
 
-from gator.models.common import Record
-from gator.data.utils import without_keys
 from gator.data.pipeline.datasets import Dataset
+from gator.data.utils import without_keys
+from gator.models.common import Record
 
 
 @dataclass

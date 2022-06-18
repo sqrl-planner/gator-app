@@ -1,9 +1,8 @@
 """Helper functions and definitions for pagination."""
 from typing import Optional
 
-from flask_restx import Model, fields, reqparse
 from flask_mongoengine import QuerySet
-
+from flask_restx import Model, fields, reqparse
 
 # Request parser for pagination.
 #

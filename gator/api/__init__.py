@@ -1,9 +1,8 @@
 from flask import Flask
 from flask_restx import Api
 
-from gator.api.schemas import add_all_schemas_to_api
 from gator.api.resources.courses import ns as courses_api
-
+from gator.api.schemas import add_all_schemas_to_api
 
 # Create API instance - this is the main entrypoint for the API
 api = Api(

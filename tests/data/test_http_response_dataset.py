@@ -3,8 +3,8 @@ import math
 import random
 
 import pytest
-from werkzeug import Request, Response
 from pytest_httpserver import HTTPServer
+from werkzeug import Request, Response
 
 from gator.data.pipeline.datasets.io import HttpResponseDataset
 

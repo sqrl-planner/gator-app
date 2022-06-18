@@ -2,8 +2,8 @@
 from typing import Any, Iterator
 
 import gator.data.pipeline.datasets as datasets
-import gator.data.pipeline.transforms as transforms
 import gator.data.pipeline.datasets.primitives as primitives
+import gator.data.pipeline.transforms as transforms
 
 
 class ApplyDataset(datasets.Dataset):

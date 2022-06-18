@@ -87,9 +87,8 @@ class HttpResponseDataset(Dataset):
         If the response is not JSON or response fails to parse as JSON, an
         empty dictionary is returned.
         """
-        from gator.data.pipeline.datasets.primitives import (
-            DictDataset, LambdaDataset
-        )
+        from gator.data.pipeline.datasets.primitives import (DictDataset,
+                                                             LambdaDataset)
 
         return DictDataset(LambdaDataset(lambda: self._do_request().json() or {}))
 

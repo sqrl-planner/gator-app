@@ -1,7 +1,6 @@
 """API schemas for common models."""
 from flask_restx import Model, fields
 
-
 # A list of all schemas in this module
 ALL_SCHEMAS = []
 
