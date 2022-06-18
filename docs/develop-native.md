@@ -27,7 +27,7 @@ machine with minor modifications.
 Before continuing, make sure you have [Homebrew](https://brew.sh/) installed – a useful package
 manager for macOS.
 
-We'll begin with making sure we have the right version of Python installed. Run 
+We'll begin with making sure we have the right version of Python installed. Run
 ```
 $ brew install pyenv
 ```
@@ -44,21 +44,13 @@ in the root project directory to install the required Python version. Then, run
 run ``eval "$(pyenv init -)"`` and try again (you may optionally add this command to your
 ``~/.zshrc``, ``~/.bashrc``, or other startup file to ensure that pyenv is always initialized).
 
-### Creating a new virtual environment
-To keep your Python environment tidy, we recommend creating a new virtual environment for this
-project. In the terminal, run
-```
-$ python3 -m venv venv
-$ source bin/venv/activate
-```
-to create and activate a new virtual environment named ``venv``. You'll need to activate the
-virtual environment everytime you open a new terminal. You can always deactivate the virtual
-environment by running ``deactivate``.
+### Getting poetry
+You'll need to have [poetry](https://python-poetry.org/) installed to get the required dependencies. See [here](https://python-poetry.org/docs/#installation) for more information.
 
 ### Installing requirements
-With the virtual environment activated, run
+With poetry installed, run
 ```
-$ pip3 install -r requirements.txt
+$ poetry install
 ```
 to install required packages.
 
