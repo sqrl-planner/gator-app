@@ -65,11 +65,17 @@ If you prefer to work natively, rather than bootstraping the application in a Do
 ## Tools
 
 #### Linting the codebase
-For detecting style issues, run
+For detecting code quality and style issues, run
 ```
 flake8
 ```
-NOTE: this will not fix any issues, it just detects them.
+For checking compliance with Python docstring conventions, run
+```
+pydocstyle
+```
+
+**NOTE**: these tools will not fix any issues, but they can help you identify potential problems.
+
 
 #### Formatting the codebase
 For automatically formatting the codebase, run
