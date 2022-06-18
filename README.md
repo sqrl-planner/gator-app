@@ -2,11 +2,11 @@
 Central dataset aggregator and content manager for sqrl planner
 
 ## Package manager
-Gator uses the [`poetry`](https://python-poetry.org/) package manager to manage its dependencies. To install the dependencies, run the following command:
+Gator uses the [poetry](https://python-poetry.org/) package manager to manage its dependencies. To install the dependencies, run the following command:
 ```
 poetry install
 ```
-See the [`poetry`](https://python-poetry.org/) documentation for more information and
+See the [poetry](https://python-poetry.org/) documentation for more information and
 installation instructions.
 
 ## Running the server
