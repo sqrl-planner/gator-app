@@ -3,7 +3,10 @@ from flask_restx import Namespace, Resource
 
 from gator.models.timetable import Course
 from gator.api.schemas.timetable import course_schema
-from gator.api.helpers.pagination import reqparser as pagination_reqparser, paginate_query
+from gator.api.helpers.pagination import (
+    reqparser as pagination_reqparser,
+    paginate_query, pagination_schema_for
+)
 
 
 # Define API namespace
@@ -14,9 +17,12 @@ ns = Namespace('courses', description='Course related operations')
 class Courses(Resource):
     @ns.doc('list_courses')
     @ns.expect(pagination_reqparser)
-    @ns.marshal_list_with(course_schema)
+    @ns.marshal_list_with(pagination_schema_for(course_schema))
     def get(self):
         """List all courses."""
         args = pagination_reqparser.parse_args(request)
         page, last_id = paginate_query(Course.objects, **args)
-        return page
+        return {
+            'courses': page,
+            'last_id': last_id
+        }
