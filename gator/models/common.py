@@ -43,17 +43,15 @@ class Record(db.Document):
         # Check if the record is already in the database
         record = Record.objects(id=self.id).first()
         if record is None:
-            print(self.id, self.hash, self.name)
             # Create a new record
             self.save(cascade=True)
             return 'created'
         elif force or record.hash != self.hash:
-            print(record.id, record.hash, record.name)
             # Update the record
             record.doc = self.doc
             record.updated_at = datetime.datetime.now()
             record.hash = self.hash
-            self.save(cascade=True)
+            record.save(cascade=True)
             return 'updated'
         else:
             # Skip the record
