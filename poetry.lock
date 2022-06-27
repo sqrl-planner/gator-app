@@ -260,7 +260,7 @@ flask-mongoengine = "^1.0.0"
 type = "git"
 url = "https://github.com/sqrl-planner/gator-models.git"
 reference = "main"
-resolved_reference = "a5e5f969e1011e8987e2625ae2224517c7d3f446"
+resolved_reference = "ebcc1078530a175d8264f7da4833d4d41a1b1deb"
 
 [[package]]
 name = "gunicorn"
