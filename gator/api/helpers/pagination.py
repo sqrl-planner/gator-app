@@ -19,7 +19,7 @@ class PaginationParamsSchema(Schema):
         /api/v1/resource?page_size=<int>&last_id=<int>
     """
 
-    page_size = fields.Integer(default=20)
+    page_size = fields.Integer(load_default=20)
     last_id = fields.String(load_default=None)
 
 
@@ -47,7 +47,7 @@ def pagination_schema_for(schema: Type[Schema],
         )
 
     return Schema.from_dict({
-        objects_field_name: fields.Nested(schema, many=True),
+        objects_field_name: fields.Nested(schema, many=True, default=list()),
         'last_id': fields.String(load_default=None)
     })
 
