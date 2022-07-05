@@ -49,3 +49,5 @@ REPOLIST_FILE = os.getenv('REPOLIST_FILE',
 
 # Whether to enforce payload validation by default when using the @api.expect() decorator.
 RESTX_VALIDATE = True
+# Whether to add help text to 404 errors.
+ERROR_404_HELP = False
