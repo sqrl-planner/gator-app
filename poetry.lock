@@ -259,7 +259,7 @@ email = ["email-validator"]
 
 [[package]]
 name = "gator-models"
-version = "1.1.1"
+version = "1.1.2"
 description = "MongoDB models for Gator API"
 category = "main"
 optional = false
@@ -833,7 +833,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "934b6a96ce48517bb8fc62d6b1c152383950242cf6d861da2e5ea0bdf1301c24"
+content-hash = "f3d2bc2dea262b6457efe21a0c6130f7d3b1a992c8cb2bbc030dfd0a939b88d2"
 
 [metadata.files]
 aniso8601 = [
@@ -955,8 +955,8 @@ flask-wtf = [
     {file = "Flask_WTF-1.0.1-py3-none-any.whl", hash = "sha256:9d733658c80be551ce7d5bc13c7a7ac0d80df509be1e23827c847d9520f4359a"},
 ]
 gator-models = [
-    {file = "gator-models-1.1.1.tar.gz", hash = "sha256:288dca42e8b21fbf6031a5c717e51de765eefd252bdef74326960274af307c65"},
-    {file = "gator_models-1.1.1-py3-none-any.whl", hash = "sha256:bd94bcf63a0b4bc61788f84a41a3a6f60c36f05cabd966219c15ca587f6a1869"},
+    {file = "gator-models-1.1.2.tar.gz", hash = "sha256:5707ba4e2e1c124eb44597224ece2c966e8135e1c8b5d8e3bd7391d66d1a041f"},
+    {file = "gator_models-1.1.2-py3-none-any.whl", hash = "sha256:ceb8cfc22292aaa8c87c7d37c34f220e7987152cbe1db97cbf862d7fa669f6c5"},
 ]
 gunicorn = [
     {file = "gunicorn-20.1.0-py3-none-any.whl", hash = "sha256:9dcc4547dbb1cb284accfb15ab5667a0e5d1881cc443e0677b4882a4067a807e"},
