@@ -91,7 +91,7 @@ def paginate_query(queryset: QuerySet, page_size: int = 20,
 
 
 def as_paginated_response(page: QuerySet, last_id: Optional[str] = None,
-    objects_field_name: Optional[str] = None) -> dict:
+                          objects_field_name: Optional[str] = None) -> dict:
     """Create a paginated response from a queryset.
 
     Args:
