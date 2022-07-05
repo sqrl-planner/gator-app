@@ -3,7 +3,10 @@ from flask import request
 from flask_accepts import accepts, responds
 from flask_restx import Namespace, Resource
 
-from gator.api.helpers.pagination import PaginationParamsSchema, pagination_schema_for, paginate_query, as_paginated_response
+from gator.api.helpers.pagination import (PaginationParamsSchema,
+                                          as_paginated_response,
+                                          paginate_query,
+                                          pagination_schema_for)
 from gator.models.timetable import Course
 from gator.schemas.timetable import CourseSchema
 
