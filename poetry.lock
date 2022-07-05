@@ -246,21 +246,14 @@ email = ["email-validator"]
 
 [[package]]
 name = "gator-models"
-version = "0.1.0"
+version = "1.0.0"
 description = "MongoDB models for Gator API"
 category = "main"
 optional = false
-python-versions = "^3.9"
-develop = false
+python-versions = ">=3.9,<4.0"
 
 [package.dependencies]
-flask-mongoengine = "^1.0.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/sqrl-planner/gator-models.git"
-reference = "main"
-resolved_reference = "ebcc1078530a175d8264f7da4833d4d41a1b1deb"
+flask-mongoengine = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "gunicorn"
@@ -797,7 +790,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "ccae96e0575dc7d5702024598c695251b222e0e68dd7fb3fa8aea2c4c18e8ef2"
+content-hash = "cd6fcb095b434c33c84553cf3fd1e73414f2225338e3b1ff47f2be1cfd2f9a38"
 
 [metadata.files]
 aniso8601 = [
@@ -914,7 +907,10 @@ flask-wtf = [
     {file = "Flask-WTF-1.0.1.tar.gz", hash = "sha256:34fe5c6fee0f69b50e30f81a3b7ea16aa1492a771fe9ad0974d164610c09a6c9"},
     {file = "Flask_WTF-1.0.1-py3-none-any.whl", hash = "sha256:9d733658c80be551ce7d5bc13c7a7ac0d80df509be1e23827c847d9520f4359a"},
 ]
-gator-models = []
+gator-models = [
+    {file = "gator-models-1.0.0.tar.gz", hash = "sha256:cb1d7ac56263d4bf537044683d395eaca3e07966915ea5dbf4ff615973c5b7e3"},
+    {file = "gator_models-1.0.0-py3-none-any.whl", hash = "sha256:d48e32cff919671b9f94558c11aadcd6cecfa673bb9112f1dd869da22e5d1932"},
+]
 gunicorn = [
     {file = "gunicorn-20.1.0-py3-none-any.whl", hash = "sha256:9dcc4547dbb1cb284accfb15ab5667a0e5d1881cc443e0677b4882a4067a807e"},
     {file = "gunicorn-20.1.0.tar.gz", hash = "sha256:e0a968b5ba15f8a328fdfd7ab1fcb5af4470c28aaf7e55df02a99bc13138e6e8"},
