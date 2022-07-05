@@ -1,4 +1,6 @@
 """String manipulation helpers."""
+
+
 def chomp(x: str, suffix: str) -> str:
     """Remove the suffix from the end of the string.
 
