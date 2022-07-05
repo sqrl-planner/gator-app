@@ -182,6 +182,19 @@ async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
 
 [[package]]
+name = "flask-accepts"
+version = "0.18.4"
+description = "Easy, opinionated Flask input/output handling with Flask-restx and Marshmallow"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+flask-restx = ">=0.2.0"
+marshmallow = ">=3.0.1"
+Werkzeug = "*"
+
+[[package]]
 name = "flask-cors"
 version = "3.0.10"
 description = "A Flask extension adding a decorator for CORS support"
@@ -246,13 +259,15 @@ email = ["email-validator"]
 
 [[package]]
 name = "gator-models"
-version = "1.0.1"
+version = "1.1.1"
 description = "MongoDB models for Gator API"
 category = "main"
 optional = false
 python-versions = ">=3.9,<4.0"
 
 [package.dependencies]
+marshmallow = ">=3.17.0,<4.0.0"
+marshmallow-enum = ">=1.5.1,<2.0.0"
 mongoengine = ">=0.20"
 
 [[package]]
@@ -368,6 +383,34 @@ description = "Safely add untrusted strings to HTML/XML markup."
 category = "main"
 optional = false
 python-versions = ">=3.7"
+
+[[package]]
+name = "marshmallow"
+version = "3.17.0"
+description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+packaging = ">=17.0"
+
+[package.extras]
+dev = ["pytest", "pytz", "simplejson", "mypy (==0.961)", "flake8 (==4.0.1)", "flake8-bugbear (==22.6.22)", "pre-commit (>=2.4,<3.0)", "tox"]
+docs = ["sphinx (==4.5.0)", "sphinx-issues (==3.0.1)", "alabaster (==0.7.12)", "sphinx-version-warning (==1.1.2)", "autodocsumm (==0.2.8)"]
+lint = ["mypy (==0.961)", "flake8 (==4.0.1)", "flake8-bugbear (==22.6.22)", "pre-commit (>=2.4,<3.0)"]
+tests = ["pytest", "pytz", "simplejson"]
+
+[[package]]
+name = "marshmallow-enum"
+version = "1.5.1"
+description = "Enum field for Marshmallow"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+marshmallow = ">=2.0.0"
 
 [[package]]
 name = "mccabe"
@@ -790,7 +833,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "08cd576f262925c47eb274d04dcab0fee41f3ecf1d821813dc2fc55d78ed7bf3"
+content-hash = "934b6a96ce48517bb8fc62d6b1c152383950242cf6d861da2e5ea0bdf1301c24"
 
 [metadata.files]
 aniso8601 = [
@@ -891,6 +934,10 @@ flask = [
     {file = "Flask-2.1.2-py3-none-any.whl", hash = "sha256:fad5b446feb0d6db6aec0c3184d16a8c1f6c3e464b511649c8918a9be100b4fe"},
     {file = "Flask-2.1.2.tar.gz", hash = "sha256:315ded2ddf8a6281567edb27393010fe3406188bafbfe65a3339d5787d89e477"},
 ]
+flask-accepts = [
+    {file = "flask_accepts-0.18.4-py3-none-any.whl", hash = "sha256:63614b33d885afb78b15ca3384582eabf94feafdc3b001002f52d6a27c82d631"},
+    {file = "flask_accepts-0.18.4.tar.gz", hash = "sha256:ac8a67ccdec0b6de623cae54c677132f476307faaaa9ead6209abf20c207460c"},
+]
 flask-cors = [
     {file = "Flask-Cors-3.0.10.tar.gz", hash = "sha256:b60839393f3b84a0f3746f6cdca56c1ad7426aa738b70d6c61375857823181de"},
     {file = "Flask_Cors-3.0.10-py2.py3-none-any.whl", hash = "sha256:74efc975af1194fc7891ff5cd85b0f7478be4f7f59fe158102e91abb72bb4438"},
@@ -908,8 +955,8 @@ flask-wtf = [
     {file = "Flask_WTF-1.0.1-py3-none-any.whl", hash = "sha256:9d733658c80be551ce7d5bc13c7a7ac0d80df509be1e23827c847d9520f4359a"},
 ]
 gator-models = [
-    {file = "gator-models-1.0.1.tar.gz", hash = "sha256:0932dfb92c13f070d7f04c689c45bc92722f5cebddb4939c90712a85bf194e43"},
-    {file = "gator_models-1.0.1-py3-none-any.whl", hash = "sha256:f4eebe69def4310104da29f8f5d7e44aa5b1d7eead56470b6cd796a3fbb8f636"},
+    {file = "gator-models-1.1.1.tar.gz", hash = "sha256:288dca42e8b21fbf6031a5c717e51de765eefd252bdef74326960274af307c65"},
+    {file = "gator_models-1.1.1-py3-none-any.whl", hash = "sha256:bd94bcf63a0b4bc61788f84a41a3a6f60c36f05cabd966219c15ca587f6a1869"},
 ]
 gunicorn = [
     {file = "gunicorn-20.1.0-py3-none-any.whl", hash = "sha256:9dcc4547dbb1cb284accfb15ab5667a0e5d1881cc443e0677b4882a4067a807e"},
@@ -988,6 +1035,14 @@ markupsafe = [
     {file = "MarkupSafe-2.1.1-cp39-cp39-win32.whl", hash = "sha256:d4306c36ca495956b6d568d276ac11fdd9c30a36f1b6eb928070dc5360b22e1c"},
     {file = "MarkupSafe-2.1.1-cp39-cp39-win_amd64.whl", hash = "sha256:46d00d6cfecdde84d40e572d63735ef81423ad31184100411e6e3388d405e247"},
     {file = "MarkupSafe-2.1.1.tar.gz", hash = "sha256:7f91197cc9e48f989d12e4e6fbc46495c446636dfc81b9ccf50bb0ec74b91d4b"},
+]
+marshmallow = [
+    {file = "marshmallow-3.17.0-py3-none-any.whl", hash = "sha256:00040ab5ea0c608e8787137627a8efae97fabd60552a05dc889c888f814e75eb"},
+    {file = "marshmallow-3.17.0.tar.gz", hash = "sha256:635fb65a3285a31a30f276f30e958070f5214c7196202caa5c7ecf28f5274bc7"},
+]
+marshmallow-enum = [
+    {file = "marshmallow-enum-1.5.1.tar.gz", hash = "sha256:38e697e11f45a8e64b4a1e664000897c659b60aa57bfa18d44e226a9920b6e58"},
+    {file = "marshmallow_enum-1.5.1-py2.py3-none-any.whl", hash = "sha256:57161ab3dbfde4f57adeb12090f39592e992b9c86d206d02f6bd03ebec60f072"},
 ]
 mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},

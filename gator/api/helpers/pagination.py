@@ -1,26 +1,55 @@
 """Helper functions and definitions for pagination."""
-from typing import Optional
+from typing import Optional, Type
 
 from flask_mongoengine import QuerySet
 from flask_restx import Model, fields, reqparse
+from marshmallow import Schema, fields
 
-# Request parser for pagination.
-#
-# Query parameters:
-#   page_size: number of items to return per page (default: 20).
-#   last_id: id of the last item returned. If not specified, returns the first page.
-#
-# Example usage:
-#   /api/v1/resource?page_size=<int>&last_id=<int>
-reqparser = reqparse.RequestParser()
-reqparser.add_argument(
-    'page_size', type=int,
-    required=False, default=20, location='args'
-)
-reqparser.add_argument(
-    'last_id', type=str,
-    required=False, default=None, location='args'
-)
+from gator.api.helpers.string import chomp
+
+
+class PaginationParamsSchema(Schema):
+    """
+    Schema for pagination query parameters.
+
+    Query parameters:
+        page_size: number of items to return per page (default: 20).
+        last_id: id of the last item returned. If not specified, returns the first page.
+
+    Example usage:
+        /api/v1/resource?page_size=<int>&last_id=<int>
+    """
+    page_size = fields.Integer(default=20)
+    last_id = fields.String(load_default=None)
+
+
+def pagination_schema_for(schema: Type[Schema],
+                          objects_field_name: Optional[str] = None) -> Schema:
+    """Create the pagination schema for a model schema.
+
+    The pagination schema contains the following fields:
+        - objects: The list of objects in the page (of type `model`)
+        - last_id: The ID of the last item in the page.
+
+    Args:
+        schema: The class type of the model schema to add pagination fields to.
+        objects_field_name: The name of the field that contains the list of
+            objects in the page. Defaults to plural of the model name.
+
+    Returns:
+        A copy of the model with the pagination fields added.
+    """
+    if objects_field_name is None:
+        objects_field_name = _get_object_field_name(
+            # Get model name from the schema name.
+            # Remove "Schema" suffix if there is one
+            chomp(schema.__name__, 'Schema')
+        )
+
+    return Schema.from_dict({
+        objects_field_name: fields.Nested(schema, many=True),
+        'last_id': fields.String(load_default=None)
+    })
 
 
 def paginate_query(queryset: QuerySet, page_size: int = 20,
@@ -61,28 +90,42 @@ def paginate_query(queryset: QuerySet, page_size: int = 20,
     return page, last_id
 
 
-def pagination_schema_for(model: Model,
-                          objects_field_name: Optional[str] = None) -> Model:
-    """Create the pagination schema for a model.
-
-    The pagination schema contains the following fields:
-        - objects: The list of objects in the page (of type `model`)
-        - last_id: The ID of the last item in the page.
+def as_paginated_response(page: QuerySet, last_id: Optional[str] = None,
+    objects_field_name: Optional[str] = None) -> dict:
+    """Create a paginated response from a queryset.
 
     Args:
-        model: The model to add the pagination fields to.
+        page: A queryset object.
+        last_id: The id of the last item returned.
         objects_field_name: The name of the field that contains the list of
-            objects in the page. Defaults to plural of the model name.
+            objects in the page. Defaults to plural of objects in the page.
 
     Returns:
-        A copy of the model with the pagination fields added.
+        A dictionary containing the following keys:
+            <objects_field_name>: A list of objects in the page.
+            last_id: The id of the last item returned.
     """
     if objects_field_name is None:
-        import inflection
-        objects_field_name = inflection.underscore(
-            inflection.pluralize(model.name))
+        objects_field_name = _get_object_field_name(
+            page.first().__class__.__name__
+        )
 
-    return Model(model.name, {
-        objects_field_name: fields.List(fields.Nested(model)),
-        'last_id': fields.String
-    })
+    return {
+        objects_field_name: page,
+        'last_id': last_id
+    }
+
+
+def _get_object_field_name(model_name: str) -> str:
+    """Get the name of the field that contains the list of objects in the page.
+
+    Args:
+        model_name: The name of the model.
+
+    Returns:
+        The name of the field that contains the list of objects in the page.
+    """
+    import inflection
+    return inflection.underscore(
+        inflection.pluralize(model_name)
+    )
