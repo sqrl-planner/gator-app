@@ -1,11 +1,11 @@
 """Course related endpoints."""
 from flask import request
+from flask_accepts import accepts, responds
 from flask_restx import Namespace, Resource
 
-from gator.api.helpers.pagination import paginate_query, pagination_schema_for
-from gator.api.helpers.pagination import reqparser as pagination_reqparser
-from gator.api.schemas.timetable import course_schema
+from gator.api.helpers.pagination import PaginationParamsSchema, pagination_schema_for, paginate_query, as_paginated_response
 from gator.models.timetable import Course
+from gator.schemas.timetable import CourseSchema
 
 # Define API namespace
 ns = Namespace('courses', description='Course related operations')
@@ -16,8 +16,8 @@ class Courses(Resource):
     """Courses resource."""
 
     @ns.doc('list_courses')
-    @ns.expect(pagination_reqparser)
-    @ns.marshal_list_with(pagination_schema_for(course_schema))
+    @accepts(query_params_schema=PaginationParamsSchema, api=ns)
+    @responds(schema=pagination_schema_for(CourseSchema), api=ns)
     def get(self) -> dict:
         """List all courses.
 
@@ -30,9 +30,5 @@ class Courses(Resource):
                 courses: A list of courses up to the specified page size.
                 last_id: The id of the last item returned.
         """
-        args = pagination_reqparser.parse_args(request)
-        page, last_id = paginate_query(Course.objects, **args)
-        return {
-            'courses': page,
-            'last_id': last_id
-        }
+        page, last_id = paginate_query(Course.objects, **request.parsed_query_params)
+        return as_paginated_response(page, last_id=last_id)
