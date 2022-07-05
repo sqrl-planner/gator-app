@@ -19,6 +19,7 @@ class PaginationParamsSchema(Schema):
     Example usage:
         /api/v1/resource?page_size=<int>&last_id=<int>
     """
+
     page_size = fields.Integer(default=20)
     last_id = fields.String(load_default=None)
 
