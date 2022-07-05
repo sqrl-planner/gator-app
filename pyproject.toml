@@ -27,7 +27,7 @@ tqdm = "^4.64.0"
 yaspin = "^2.1.0"
 setuptools = "^62.5.0"
 gunicorn = "^20.1.0"
-gator-models = "^1.0.0"
+gator-models = "^1.0.1"
 
 [tool.poetry.dev-dependencies]
 python-dotenv = "^0.20.0"
