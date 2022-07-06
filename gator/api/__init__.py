@@ -3,6 +3,7 @@ from flask import Flask
 from flask_restx import Api
 
 from gator.api.resources.courses import ns as courses_api
+from gator.api.resources.organisations import ns as organisations_api
 
 # Create API instance - this is the main entrypoint for the API
 api = Api(
@@ -13,6 +14,7 @@ api = Api(
 
 # Add namespaces to the API
 api.add_namespace(courses_api)
+api.add_namespace(organisations_api)
 
 
 def init_app(app: Flask) -> None:
