@@ -2,7 +2,6 @@
 from flask import request
 from flask_accepts import accepts, responds
 from flask_restx import Namespace, Resource
-from marshmallow import fields
 
 from gator.api.helpers.mongoengine import get_or_404
 from gator.api.helpers.pagination import (PaginationParamsSchema,

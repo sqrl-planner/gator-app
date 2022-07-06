@@ -53,7 +53,7 @@ def pagination_schema_for(schema: Type[Schema],
 
 
 def paginate_query(queryset: QuerySet, page_size: int = 20,
-                   last_id: Optional[str] = None) \
+                   last_id: Optional[str] = None, id_key: str = 'id') \
         -> tuple[QuerySet, Optional[str]]:
     """Paginate a queryset.
 
@@ -61,17 +61,24 @@ def paginate_query(queryset: QuerySet, page_size: int = 20,
         query: A queryset object.
         page_size: The number of items to return per page.
         last_id: The id of the last item returned. If not specified, returns the first page.
+        id_key: The name of the key that contains the id of the object. Defaults to 'id'.
+
+    Remarks:
+        Pagination is done by filtering the queryset by the id of the last item returned.
+        As it is an id-based method, the model being paginated must have an id field called
+        '_id'. This is the default for all models in MongoEngine - primary key fields will
+        automatically be called this.
 
     Returns:
         A tuple containing the queryset and the id of the last item returned. It is possible for
         the last_id to be None, in which case the queryset will be empty.
     """
     # Ensure queryset is ordered by id
-    queryset = queryset.order_by('id')
+    queryset = queryset.order_by(id_key)
 
     if last_id is not None:
         # Return the page after the last id
-        page = queryset.filter(id__gt=last_id).limit(page_size)
+        page = queryset.filter(**{f'{id_key}__gt': last_id}).limit(page_size)
     else:
         # Return the first page
         page = queryset.limit(page_size)
