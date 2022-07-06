@@ -43,7 +43,6 @@ class CourseList(Resource):
         if ids is not None:
             query = query.filter(id__in=ids)
 
-        print(request.parsed_query_params)
         page, last_id = paginate_query(query, **request.parsed_query_params)
         return as_paginated_response(page, last_id=last_id)
 
