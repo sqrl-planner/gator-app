@@ -31,11 +31,14 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${DOCKER_WEB_CPUS:-0}"
-          memory: "${DOCKER_WEB_MEMORY:-0}"
+          cpus: "${DOCKER_MONGODB_CPUS:-0}"
+          memory: "${DOCKER_MONGODB_MEMORY:-0}"
+    networks:
+      - ${DOCKER_NETWORK:-default}
 
   web:
     <<: *default-app
+    hostname: gator_api
     deploy:
       resources:
         limits:
@@ -51,6 +54,13 @@ services:
       - "${DOCKER_WEB_PORT_FORWARD:-127.0.0.1:5000}:5000"
     links:
       - mongodb
+    networks:
+      - ${DOCKER_NETWORK:-default}
+      - sqrl-shared-net
 
 volumes:
   mongodb: {}
+
+networks:
+  sqrl-shared-net:
+    external: true

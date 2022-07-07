@@ -5,10 +5,9 @@ from typing import Optional
 
 APP_NAME = os.getenv('COMPOSE_PROJECT_NAME', 'gator')
 
-SECRET_KEY = os.getenv('SECRET_KEY', None)
+SECRET_KEY = os.getenv('SECRET_KEY')
 
-SERVER_NAME = os.getenv(
-    'SERVER_NAME', 'localhost:{0}'.format(os.getenv('PORT', '5000')))
+SERVER_NAME = os.getenv('SERVER_NAME')
 
 
 # MongoDB configuration
