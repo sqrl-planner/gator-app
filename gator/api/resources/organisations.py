@@ -1,4 +1,6 @@
 """Organisation related endpoints."""
+from urllib.parse import unquote_plus
+
 from flask import request
 from flask_accepts import accepts, responds
 from flask_restx import Namespace, Resource
@@ -56,4 +58,4 @@ class OrganisationGet(Resource):
         Args:
             code: The code of the organisation. This is case-insensitive.
         """
-        return get_or_404(Organisation, code=code.upper())
+        return get_or_404(Organisation, code=unquote_plus(code).upper())

@@ -1,4 +1,6 @@
 """Course related endpoints."""
+from urllib.parse import unquote_plus
+
 from flask import request
 from flask_accepts import accepts, responds
 from flask_restx import Namespace, Resource
@@ -57,4 +59,4 @@ class CourseGet(Resource):
     @responds(schema=CourseSchema, api=ns)
     def get(self, id: str) -> Course:
         """Fetch the course with the given id."""
-        return get_or_404(Course, id=id)
+        return get_or_404(Course, id=unquote_plus(id))
