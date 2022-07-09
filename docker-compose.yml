@@ -36,6 +36,40 @@ services:
     networks:
       - sqrl-shared-net
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.3.2
+    restart: always
+    env_file:
+      - ".env"
+    ports:
+      - 9200:9200
+    volumes:
+      - es:/data/es
+    deploy:
+      resources:
+        limits:
+          cpus: "${DOCKER_ELASTICSEARCH_CPUS:-0}"
+          memory: "${DOCKER_ELASTICSEARCH_MEMORY:-0}"
+    networks:
+      - sqrl-shared-net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.3.2
+    restart: always
+    env_file:
+      - ".env"
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+    deploy:
+      resources:
+        limits:
+          cpus: "${DOCKER_KIBANA_CPUS:-0}"
+          memory: "${DOCKER_KIBANA_MEMORY:-0}"
+    networks:
+      - sqrl-shared-net
+
   web:
     <<: *default-app
     hostname: gator_api
@@ -59,6 +93,7 @@ services:
 
 volumes:
   mongodb: {}
+  es: {}
 
 networks:
   sqrl-shared-net:
