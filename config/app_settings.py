@@ -41,6 +41,9 @@ MONGODB_SETTINGS = {
     'password': _get_mongodb_credential('password', default='password'),
 }
 
+ELASTICSEARCH_URL = os.getenv('ELASTICSEARCH_URL', 'http://localhost:9200')
+ELASTICSEARCH_TIMEOUT = int(os.getenv('ELASTICSEARCH_TIMEOUT', 10))
+
 API_DOCS_URL = os.getenv('API_DOCS_URL', None)
 
 REPOLIST_FILE = os.getenv('REPOLIST_FILE',
