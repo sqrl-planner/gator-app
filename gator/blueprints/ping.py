@@ -6,7 +6,7 @@ bp = Blueprint('ping', __name__, url_prefix='/ping')
 
 @bp.get('/')
 def index():
-    """Reports if the Gator service is up and running.
+    """Report if the Gator service is up and running.
 
     It does not report the health of the service, just whether it is
     reachable (i.e. running).  The return value of this endpoint can be
