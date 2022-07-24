@@ -65,12 +65,13 @@ For more information on this command and the data CLI, see the [data cli](/docs/
 
 ### Automating data syncing
 
-The Docker container will automaticlly sync the data on the first-run. You might find it useful to setup a cron job to periodically run this job in production.
+The Docker container will automatically sync the data on the first-run. You might find it useful to setup a cron job to periodically run this job in production.
 
 ## Native Development Environment
 If you prefer to work natively, rather than bootstraping the application in a Docker container, see the [native development workflow](docs/develop-native.md) docs for setup instructions.
 
-## Tools
+## Workflow Tools
+We use [pre-commit](https://pre-commit.com/) to automatically run the following tasks when you commit to your repository.
 
 #### Linting the codebase
 For detecting code quality and style issues, run
