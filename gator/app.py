@@ -34,6 +34,10 @@ def create_app(settings_override: Any = None) -> Flask:
     import gator.api as api
     api.init_app(app)
 
+    # Register blueprints
+    from gator import blueprints
+    blueprints.register(app)
+
     return app
 
 
