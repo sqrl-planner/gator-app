@@ -14,5 +14,5 @@ def index():
     reachable (i.e. running).  The return value of this endpoint can be
     anything as long as the response has a status code of 200.
     """
-    return 'All good!'
+    return 'pong'
     
