@@ -1,3 +1,5 @@
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/sqrl-planner/gator/main.svg)](https://results.pre-commit.ci/latest/github/sqrl-planner/gator/main)
+
 # gator
 Central dataset aggregator and content manager for sqrl planner
 
