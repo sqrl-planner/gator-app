@@ -1,6 +1,4 @@
-"""Blueprint that exposes endpoints for pinging the Gator API and
-other critical services.
-"""
+"""Endpoints for reporting service status and health."""
 from flask import Blueprint
 
 bp = Blueprint('ping', __name__, url_prefix='/ping')
@@ -8,7 +6,7 @@ bp = Blueprint('ping', __name__, url_prefix='/ping')
 
 @bp.get('/')
 def index():
-    """An endpoint for checking if the Gator service is up and running.
+    """Reports if the Gator service is up and running.
 
     It does not report the health of the service, just whether it is
     reachable (i.e. running).  The return value of this endpoint can be
