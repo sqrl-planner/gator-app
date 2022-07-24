@@ -1,6 +1,8 @@
+# type: ignore
 """Test the HttpResponseDataset class."""
 import math
 import random
+from typing import Iterator
 
 import pytest
 from pytest_httpserver import HTTPServer
@@ -22,7 +24,7 @@ LARGE_HTML_FULL_DATA = LARGE_HTML_CHAR * LARGE_HTML_SIZE
 
 def large_html_handler(request: Request) -> Response:
     """Write the large html in variable sized chunks."""
-    def get_chunks() -> bytes:
+    def get_chunks() -> Iterator[bytes]:
         """Generate a chunk of random bytes until max size is reached."""
         # Choose a variable sized chunk size
         total = 0
@@ -40,7 +42,7 @@ def large_html_handler(request: Request) -> Response:
 
 
 @pytest.fixture
-def http_server(httpserver: HTTPServer) -> None:
+def http_server(httpserver: HTTPServer) -> HTTPServer:
     """Fixture that configures an HTTP server for testing."""
     httpserver.expect_request('/small').respond_with_data(SMALL_HTML)
     httpserver.expect_request('/large').respond_with_handler(large_html_handler)

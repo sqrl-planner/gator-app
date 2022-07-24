@@ -1,6 +1,7 @@
+# type: ignore
 """Base classes for a datasets."""
 from abc import ABC, abstractmethod
-from typing import Any, Type, Union
+from typing import Any, Callable, Type, Union
 
 
 class Dataset(ABC):
@@ -28,7 +29,7 @@ class Dataset(ABC):
         """Return the data contained in this dataset."""
         raise NotImplementedError()
 
-    def apply(self, fn: Union[callable, Type]) -> 'Dataset':
+    def apply(self, fn: Union[Callable, Type]) -> 'Dataset':
         """Apply a data transform to the dataset.
 
         Args:

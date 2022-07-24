@@ -1,3 +1,4 @@
+# type: ignore
 """Organisation related endpoints."""
 from urllib.parse import unquote_plus
 

@@ -106,7 +106,10 @@ def repos_list() -> None:
     headers = ['SLUG', 'ROUTE', 'NAME', 'DESCRIPTION']
     rows = []
     for repo, route in repolist.repos_iter():
-        wrapped_desc = '\n'.join(textwrap.wrap(repo.description))
+        if repo.description:
+            wrapped_desc = '\n'.join(textwrap.wrap(repo.description))
+        else:
+            wrapped_desc = ''
         rows.append([repo.slug, route, repo.name, wrapped_desc])
 
     print(tabulate(rows, headers=headers, tablefmt='plain'))
@@ -117,7 +120,10 @@ def repos_add(repo: str = typer.Argument(
         ..., help='Repo route to add to repolist.')) -> None:
     """Add a repo by route."""
     registry = repolist._registry
-    if registry.has_match(repo):
+    if not registry:
+        print('No repositories registered. Please run `gator repo init`.',)
+        typer.Exit(1)
+    elif registry.has_match(repo):
         # repo is a pattern
         repolist.add(repo)
     else:
@@ -130,7 +136,10 @@ def repos_remove(repo: str = typer.Argument(
         ..., help='Repo route to remove from repolist.')) -> None:
     """Remove a repo by route."""
     registry = repolist._registry
-    if registry.has_match(repo):
+    if not registry:
+        print('No repositories registered. Please run `gator repo init`.',)
+        typer.Exit(1)
+    elif registry.has_match(repo):
         # repo is a pattern
         repolist.remove(repo)
     else:
