@@ -44,13 +44,12 @@ def create_app(settings_override: Any = None) -> Flask:
 
 
 def init_middleware(app: Flask) -> None:
-    """
-    Register 0 or more middleware (mutates the app passed in).
+    """Register 0 or more middleware (mutates the app passed in).
 
     Args:
         app: A Flask application instance.
     """
-    # Enable the Flask interactive debugger in the brower for development.
+    # Enable the Flask interactive debugger in the browser for development.
     if app.debug:
         app.wsgi_app = DebuggedApplication(app.wsgi_app, evalex=True)
 

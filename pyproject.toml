@@ -38,6 +38,7 @@ flake8 = "^4.0.1"
 pydocstyle = "^6.1.1"
 autopep8 = "^1.6.0"
 isort = "^5.10.1"
+pre-commit = "^2.20.0"
 
 [tool.poetry.scripts]
 gator = "gator.cli:app"
@@ -45,3 +46,16 @@ gator = "gator.cli:app"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+include = ["gator/**", "tests/**"]
+exclude = ["**/__pycache__"]
+
+typeCheckingMode = "basic"
+pythonVersion = "3.9"
+pythonPlatform = "All"
+typeshedPath = "typeshed"
+enableTypeIgnoreComments = true
+
+# This is required as the CI pre-commit does not download required modules
+reportMissingImports = "none"

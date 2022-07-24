@@ -1,7 +1,7 @@
 """Application settings."""
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 APP_NAME = os.getenv('COMPOSE_PROJECT_NAME', 'gator')
 
@@ -14,7 +14,7 @@ SERVER_NAME = os.getenv('SERVER_NAME')
 
 
 def _get_mongodb_credential(credential_type: str,
-                            default: Optional[str] = None) -> str:
+                            default: Optional[str] = None) -> Union[str, None]:
     """Return a credential for the MongoDB database.
 
     Will first check the environment variable MONGODB_{credential_type},

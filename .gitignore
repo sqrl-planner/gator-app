@@ -381,3 +381,6 @@ cython_debug/
 .vscode/*
 
 config/repolist.yml
+
+# R&D files
+searching/

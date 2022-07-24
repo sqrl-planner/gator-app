@@ -1,3 +1,4 @@
+# type: ignore
 """Base repo definition."""
 import fnmatch
 import uuid
@@ -5,7 +6,7 @@ from dataclasses import dataclass, field
 from functools import wraps
 from pathlib import Path
 from pydoc import locate
-from typing import Any, Iterator, Optional, get_type_hints
+from typing import Any, Callable, Iterator, Optional, get_type_hints
 
 import yaml
 from routes import Mapper
@@ -50,7 +51,7 @@ class RepositoryRegistry:
         self._routes = Mapper()
         self._route_metadata = {}
 
-    def route(self, pattern: str, **kwargs: Any) -> callable:
+    def route(self, pattern: str, **kwargs: Any) -> Callable:
         """Register a repo function for a given rule.
 
         This does the same thing as the `add_rule` method but is intended for
@@ -69,12 +70,12 @@ class RepositoryRegistry:
             **kwargs: Additional keyword arguments that will be used when
                 creating the Repository.
         """
-        def decorator(f: callable) -> callable:
+        def decorator(f: Callable) -> Callable:
             self.add_rule(pattern, f, **kwargs)
             return f
         return decorator
 
-    def add_rule(self, pattern: str, f: callable, **repo_kwargs: Any) -> None:
+    def add_rule(self, pattern: str, f: Callable, **repo_kwargs: Any) -> None:
         """Register a repo function for a given rule.
 
         Args:
@@ -159,7 +160,7 @@ class RepositoryRegistry:
                     pass
 
 
-def _ensure_initialised(f: callable) -> callable:
+def _ensure_initialised(f: Callable) -> Callable:
     """Decorate a class method to ensure that the registry is initialised."""
     @wraps(f)
     def wrapper(self: 'RepositoryRegistry', *args: Any, **kwargs: Any) -> Any:
@@ -225,7 +226,7 @@ class RepositoryList:
     @_ensure_initialised
     def routes(self) -> list[str]:
         """Return a list of all routes in this repolist."""
-        with open(self._fp, 'r') as f:
+        with open(self._fp) as f:
             return yaml.safe_load(f)
 
     @_ensure_initialised
@@ -237,7 +238,7 @@ class RepositoryList:
         """
         if self._registry.has_match(pattern):
             # Add to the list
-            with open(self._fp, 'r') as f:
+            with open(self._fp) as f:
                 repolist = yaml.safe_load(f)
             # Check if the pattern is already in the list
             if pattern not in repolist:
@@ -256,7 +257,7 @@ class RepositoryList:
         """
         if self._registry.has_match(pattern):
             # Remove from the list
-            with open(self._fp, 'r') as f:
+            with open(self._fp) as f:
                 repolist = yaml.safe_load(f)
             # Check if the pattern is already in the list
             if pattern in repolist:

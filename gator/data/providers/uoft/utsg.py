@@ -54,7 +54,7 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         """
         super().__init__(session=session)
         organisations = self._get_all_organisations()
-        self._courses = organisations.map(
+        self._courses = organisations.map(  # type: ignore
             lambda org: self._get_courses_in_organisation(org)
         ).flatten()
 
@@ -116,18 +116,18 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
             id=course.id,
             doc=course,
             hash=payload_hash,
-            name='courses/{}'.format(full_code),
+            name=f'courses/{full_code}',
         )
 
     def _parse_section(self, payload: dict) -> Section:
         """Return an instance of a Section representing the given payload."""
         # Parse instructors
-        if (instructors := payload.get('instructors', [])) == []:
+        if not isinstance(instructors := payload.get('instructors', None), dict):
             # Replace empty list with empty dict for consistency
             instructors = {}
         instructors = [self._parse_instructor(x) for x in instructors.values()]
         # Parse meetings
-        if (schedule := payload.get('schedule', [])) == []:
+        if not isinstance(schedule := payload.get('schedule', None), dict):
             # Replace empty list with empty dict for consistency
             schedule = {}
         meetings = self._parse_schedule(schedule)
@@ -202,15 +202,19 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         # The search button contains the session code
         search_button = soup.find(
             'input', {'id': 'searchButton', 'class': 'btnSearch'})
+        if search_button is None:
+            raise ValueError(
+                'failed to find session code - search button not found')
 
         SESSION_CODE_PATTERN = r'(?<=searchCourses\(\')\d{5}(?=\'\))'
-        matches = re.findall(SESSION_CODE_PATTERN, search_button['onclick'])
+        onclick_text = str(search_button['onclick'])  # type: ignore
+        matches = re.findall(SESSION_CODE_PATTERN, onclick_text)
         if len(matches) == 0:
             raise ValueError('failed to find session code!')
 
         session_code = matches[0]
         if verify and not cls._is_session_code_valid(session_code):
-            raise ValueError('failed to find session code!')
+            raise ValueError('failed to find session code - invalid code')
 
         return Session.parse(session_code)
 

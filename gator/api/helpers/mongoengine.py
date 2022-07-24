@@ -1,10 +1,11 @@
 """Mongoengine helper functionality."""
-from typing import Any, Optional, Type
+from typing import Any, Callable, Optional, Type
 
 from flask_restx import abort
 
 
-def get_or_404(klass: Type, *args: Any, abort_fn: Optional[callable] = None,
+def get_or_404(klass: Type, *args: Any,
+               abort_fn: Optional[Callable] = None,
                **kwargs: Any) -> Any:
     """Get an object from a MongoEngine model or raise a 404 error.
 
@@ -22,4 +23,8 @@ def get_or_404(klass: Type, *args: Any, abort_fn: Optional[callable] = None,
         return klass.objects.get(*args, **kwargs)
     except klass.DoesNotExist:
         abort_fn = abort_fn or abort
-        abort_fn(404, f'{klass.__name__} not found.', params=kwargs)
+        abort_fn(
+            code=404,  # type: ignore
+            message=f'{klass.__name__} not found.',
+            params=kwargs
+        )
