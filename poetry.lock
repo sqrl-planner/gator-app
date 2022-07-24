@@ -863,7 +863,11 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
+<<<<<<< HEAD
 content-hash = "c3bb8afd2e8acad68667d69b42b9379651e9217177083096c21cd425b3f0a1f4"
+=======
+content-hash = "4f13cdd96c9086bf6bd4b75781f72b2700b0afec22c1939df37ec0942cb5688c"
+>>>>>>> 83fbd4fd6d5915aff0bcf9b76a9a595d45b157ef
 
 [metadata.files]
 aniso8601 = []
@@ -937,6 +941,7 @@ dnspython = [
     {file = "dnspython-2.2.1-py3-none-any.whl", hash = "sha256:a851e51367fb93e9e1361732c1d60dab63eff98712e503ea7d92e6eccb109b4f"},
     {file = "dnspython-2.2.1.tar.gz", hash = "sha256:0f7569a4a6ff151958b64304071d370daa3243d15941a7beedf0c9fe5105603e"},
 ]
+<<<<<<< HEAD
 elastic-transport = [
     {file = "elastic-transport-8.1.2.tar.gz", hash = "sha256:869f7d668fb7738776639053fc87499caacbd1bdc7819f0de8025ac0e6cb29ce"},
     {file = "elastic_transport-8.1.2-py3-none-any.whl", hash = "sha256:10914d0c5c268d9dcfee02cfbef861382d098309ba4eedab820062841bd214b3"},
@@ -945,6 +950,10 @@ elasticsearch = [
     {file = "elasticsearch-8.3.1-py3-none-any.whl", hash = "sha256:c29e9e59bfbe345f4a03877e5087aa93fdf7556ef538f52ebdfc26a89bbcdbb1"},
     {file = "elasticsearch-8.3.1.tar.gz", hash = "sha256:bd6c3b8c751114f42c0265646a202da0f00f6337a9e334b4abc60ef03d1aad7c"},
 ]
+=======
+elastic-transport = []
+elasticsearch = []
+>>>>>>> 83fbd4fd6d5915aff0bcf9b76a9a595d45b157ef
 email-validator = [
     {file = "email_validator-1.2.1-py2.py3-none-any.whl", hash = "sha256:c8589e691cf73eb99eed8d10ce0e9cbb05a0886ba920c8bcb7c82873f4c5789c"},
     {file = "email_validator-1.2.1.tar.gz", hash = "sha256:6757aea012d40516357c0ac2b1a4c31219ab2f899d26831334c5d069e8b6c3d8"},

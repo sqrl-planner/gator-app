@@ -101,7 +101,6 @@ volumes:
   mongodb: {}
   es: {}
 
-
 networks:
   sqrl-shared-net:
     external: true
