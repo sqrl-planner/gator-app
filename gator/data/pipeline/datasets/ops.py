@@ -1,4 +1,4 @@
-"""Datasets for faciliating operations."""
+"""Datasets for facilitating operations."""
 from typing import Any, Iterator
 
 import gator.data.pipeline.datasets as datasets
@@ -137,8 +137,7 @@ class KVPairsDataset(primitives.ListDataset):
             A tuple of the key and value.
         """
         d = self._dataset.get()
-        for k, v in d.items():
-            yield k, v
+        yield from d.items()
 
 
 class FlattenDataset(primitives.ListDataset):

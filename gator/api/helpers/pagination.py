@@ -8,8 +8,7 @@ from gator.api.helpers.string import chomp
 
 
 class PaginationParamsSchema(Schema):
-    """
-    Schema for pagination query parameters.
+    """Schema for pagination query parameters.
 
     Query parameters:
         page_size: number of items to return per page (default: 20).
