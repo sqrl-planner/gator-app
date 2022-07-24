@@ -116,7 +116,7 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
             id=course.id,
             doc=course,
             hash=payload_hash,
-            name='courses/{}'.format(full_code),
+            name=f'courses/{full_code}',
         )
 
     def _parse_section(self, payload: dict) -> Section:

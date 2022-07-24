@@ -225,7 +225,7 @@ class RepositoryList:
     @_ensure_initialised
     def routes(self) -> list[str]:
         """Return a list of all routes in this repolist."""
-        with open(self._fp, 'r') as f:
+        with open(self._fp) as f:
             return yaml.safe_load(f)
 
     @_ensure_initialised
@@ -237,7 +237,7 @@ class RepositoryList:
         """
         if self._registry.has_match(pattern):
             # Add to the list
-            with open(self._fp, 'r') as f:
+            with open(self._fp) as f:
                 repolist = yaml.safe_load(f)
             # Check if the pattern is already in the list
             if pattern not in repolist:
@@ -256,7 +256,7 @@ class RepositoryList:
         """
         if self._registry.has_match(pattern):
             # Remove from the list
-            with open(self._fp, 'r') as f:
+            with open(self._fp) as f:
                 repolist = yaml.safe_load(f)
             # Check if the pattern is already in the list
             if pattern in repolist:

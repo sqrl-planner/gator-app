@@ -137,8 +137,7 @@ class KVPairsDataset(primitives.ListDataset):
             A tuple of the key and value.
         """
         d = self._dataset.get()
-        for k, v in d.items():
-            yield k, v
+        yield from d.items()
 
 
 class FlattenDataset(primitives.ListDataset):
