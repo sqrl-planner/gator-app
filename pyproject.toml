@@ -45,3 +45,16 @@ gator = "gator.cli:app"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+include = ["gator/**", "tests/**"]
+exclude = ["**/__pycache__"]
+
+typeCheckingMode = "basic"
+pythonVersion = "3.9"
+pythonPlatform = "All"
+typeshedPath = "typeshed"
+enableTypeIgnoreComments = true
+
+# This is required as the CI pre-commit does not download required modules
+reportMissingImports = "none"

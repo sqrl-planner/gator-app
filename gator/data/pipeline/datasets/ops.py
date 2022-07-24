@@ -1,4 +1,4 @@
-"""Datasets for faciliating operations."""
+"""Datasets for facilitating operations."""
 from typing import Any, Iterator
 
 import gator.data.pipeline.datasets as datasets
