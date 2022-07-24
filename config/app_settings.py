@@ -1,8 +1,7 @@
 """Application settings."""
 import os
-from ctypes import Union
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 APP_NAME = os.getenv('COMPOSE_PROJECT_NAME', 'gator')
 
