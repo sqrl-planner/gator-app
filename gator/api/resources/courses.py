@@ -1,3 +1,4 @@
+# type: ignore
 """Course related endpoints."""
 from urllib.parse import unquote_plus
 

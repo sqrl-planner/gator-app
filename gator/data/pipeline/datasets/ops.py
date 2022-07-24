@@ -1,5 +1,5 @@
 """Datasets for facilitating operations."""
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 import gator.data.pipeline.datasets as datasets
 import gator.data.pipeline.datasets.primitives as primitives
@@ -9,7 +9,7 @@ class ApplyDataset(datasets.Dataset):
     """Dataset that applies an operation to another dataset."""
 
     def __init__(self, dataset: datasets.Dataset,
-                 fn: callable) -> None:
+                 fn: Callable) -> None:
         """Create a new ApplyDataset.
 
         Args:
@@ -32,7 +32,7 @@ class MapDataset(primitives.ListDataset):
     """Dataset that applies an element-wise operation to another dataset."""
 
     def __init__(self, dataset: primitives.ListDataset,
-                 transform: callable) -> None:
+                 transform: Callable) -> None:
         """Create a new map dataset.
 
         Args:

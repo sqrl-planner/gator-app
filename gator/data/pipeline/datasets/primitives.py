@@ -1,5 +1,6 @@
+# type: ignore
 """Primitive datasets."""
-from typing import Any, Iterator, Optional, Type, Union
+from typing import Any, Callable, Iterator, Optional, Type, Union
 
 import gator.data.pipeline.datasets as datasets
 
@@ -7,7 +8,7 @@ import gator.data.pipeline.datasets as datasets
 class LambdaDataset(datasets.Dataset):
     """A dataset that just calls a function."""
 
-    def __init__(self, fn: callable) -> None:
+    def __init__(self, fn: Callable) -> None:
         """Initialise a LambdaDataset.
 
         Args:
@@ -64,7 +65,7 @@ class ListDataset(datasets.Dataset):
         """Return the entire dataset as a single object."""
         return list(self)
 
-    def map(self, fn: Union[callable, Type]) \
+    def map(self, fn: Union[Callable, Type]) \
             -> 'MapDataset':  # noqa: F821
         """Apply a data transform element-wise to the dataset.
 
