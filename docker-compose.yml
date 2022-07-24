@@ -18,7 +18,7 @@ x-app: &default-app
 services:
   mongodb:
     image: mongo:latest
-    restart: always
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
     env_file:
       - ".env"
     environment:
@@ -39,24 +39,28 @@ services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.3.2
-    restart: always
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
     env_file:
       - ".env"
     ports:
       - 9200:9200
     volumes:
-      - es:/data/es
+      - es:/usr/share/elasticsearch/data
     deploy:
       resources:
         limits:
           cpus: "${DOCKER_ELASTICSEARCH_CPUS:-0}"
           memory: "${DOCKER_ELASTICSEARCH_MEMORY:-0}"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     networks:
       - sqrl-shared-net
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.3.2
-    restart: always
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
     env_file:
       - ".env"
     ports:

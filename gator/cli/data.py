@@ -6,6 +6,7 @@ from tabulate import tabulate
 
 from gator.cli.utils import section_spinner
 from gator.extensions.repolist import repolist
+from gator.extensions.elasticsearch import es
 
 app = typer.Typer()
 repo_app = typer.Typer()
@@ -19,7 +20,7 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
     Args:
         force: If True, force the sync even if the data is already up-to-date.
         pattern: A Unix-style pattern to match against the slugs or routes of
-            rexxpositories in the repo list. Supports wildcards. For example,
+            repositories in the repo list. Supports wildcards. For example,
             `books-*` will match all repositories that start with
             `books-`. Default to '*' to match all repositories.
     """
@@ -88,6 +89,28 @@ def data_pull(force: bool = False, pattern: str = typer.Option('*')) -> None:
                 status = typer.style(status.upper(), fg=typer.colors.YELLOW)
             else:
                 status = typer.style('ERROR', fg=typer.colors.RED)
+
+            # TODO: Refactor this
+            if status != 'skipped':
+                # index in elasticsearch
+                course = record.doc
+                es.index(index='courses', id=course.id, document=dict(
+                    organisation=course.organisation.name,
+                    code=course.code,
+                    title=course.title,
+                    description=course.description,
+                    term=course.term.name.replace('_', ' ').lower(),
+                    session_code=course.session_code,
+                    prerequisites=course.prerequisites,
+                    corequisites=course.corequisites,
+                    exclusions=course.exclusions,
+                    recommended_preparation=course.recommended_preparation,
+                    breadth_categories=course.breadth_categories,
+                    distribution_categories=course.distribution_categories,
+                    web_timetable_instructions=course.web_timetable_instructions,
+                    delivery_instructions=course.delivery_instructions,
+                    campus=course.campus.name.replace('_', ' ').lower()
+                ))
 
             slug = record.name or record.id
             sp.write(f' => {status} {slug}')
