@@ -8,7 +8,7 @@ repos:
     rev: v2.1.0
     hooks:
       - id: codespell
-  - repo: https://gitlab.com/PyCQA/flake8
+  - repo: https://github.com/PyCQA/flake8
     rev: 4.0.1
     hooks:
       - id: flake8
@@ -32,7 +32,7 @@ repos:
           - --convention=google
         additional_dependencies: ["toml"]
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.32.0
+    rev: v2.37.2
     hooks:
       - id: pyupgrade
         # TODO: remove `--keep-runtime-typing` option
