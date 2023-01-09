@@ -1,15 +1,15 @@
 ---
 repos:
   - repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: 'v1.6.0'  # Use the sha / tag you want to point at
+    rev: 'v2.0.1'  # Use the sha / tag you want to point at
     hooks:
       - id: autopep8
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.1.0
+    rev: v2.2.2
     hooks:
       - id: codespell
   - repo: https://github.com/PyCQA/flake8
-    rev: 4.0.1
+    rev: 6.0.0
     hooks:
       - id: flake8
         args:
@@ -18,11 +18,11 @@ repos:
           - --show-source
           - --statistics
   - repo: https://github.com/PyCQA/isort
-    rev: 5.10.1
+    rev: 5.11.4
     hooks:
       - id: isort
   - repo: https://github.com/pycqa/pydocstyle
-    rev: 6.1.1
+    rev: 6.2.3
     hooks:
       - id: pydocstyle
         exclude: ^(tests/)
@@ -32,7 +32,7 @@ repos:
           - --convention=google
         additional_dependencies: ["toml"]
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.37.2
+    rev: v3.3.1
     hooks:
       - id: pyupgrade
         # TODO: remove `--keep-runtime-typing` option
