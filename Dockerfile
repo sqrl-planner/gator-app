@@ -39,6 +39,7 @@ RUN if [ "${FLASK_ENV}" != "development" ]; then \
 EXPOSE 5000
 
 # Project dependencies
-RUN POETRY_VIRTUALENVS_CREATE=false poetry install --no-interaction --no-ansi
+RUN poetry install --no-interaction --no-ansi
 
-CMD ["gunicorn", "-c", "python:config.gunicorn", "gator.app:create_app()"]
+CMD ["poetry", "run",\
+     "gunicorn", "-c", "python:config.gunicorn", "gator.app:create_app()"]
