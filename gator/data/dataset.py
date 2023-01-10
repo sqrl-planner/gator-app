@@ -1,10 +1,11 @@
 # type: ignore
 """Base classes for a datasets."""
-from typing import Union
+from typing import Union, Optional
 from abc import ABC, abstractmethod, abstractclassmethod
 
 from gator.models.common import Record
 from gator.models.timetable import Session
+
 
 class Dataset(ABC):
     """A dataset that returns :class:`gator.models.Record` instances."""
@@ -24,6 +25,7 @@ class SessionalDataset(Dataset):
     Instance Attributes:
         session: The session that this dataset is specific to.
     """
+
     session: Session
 
     def __init__(self, session: Optional[Union[Session, str]] = None) -> None:
