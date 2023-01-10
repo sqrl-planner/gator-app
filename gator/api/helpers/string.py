@@ -11,10 +11,11 @@ def chomp(x: str, suffix: str) -> str:
     Returns:
         The string with the suffix removed.
 
-    >>> chomp('ExampleSuffix', 'Suffix')
-    'Example'
-    >>> chomp('Nothing', 'Suffix')
-    'Nothing'
+    Examples:
+        >>> chomp('ExampleSuffix', 'Suffix')
+        'Example'
+        >>> chomp('Nothing', 'Suffix')
+        'Nothing'
     """
     if x.endswith(suffix):
         return x[:-len(suffix)]

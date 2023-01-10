@@ -11,7 +11,7 @@ from typing import Any, Callable, Iterator, Optional, get_type_hints
 import yaml
 from routes import Mapper
 
-from gator.data.pipeline.datasets import Dataset
+from gator.data.dataset import Dataset
 from gator.data.utils import without_keys
 from gator.models.common import Record
 
@@ -46,8 +46,17 @@ class Repository:
 class RepositoryRegistry:
     """A collection of repositories that are accessible to the app."""
 
-    def __init__(self) -> None:
-        """Initialise the repository registry."""
+    def __init__(self, base_rule: str = "") -> None:
+        """Initialise the repository registry.
+
+        Args:
+            base_rule: The base rule to use for all registered repositories.
+                This will be peprended to the rule specified when registering
+                a repository. For example, if the base url is "/repos" and the
+                rule for a repository is "/books/:batch", then the final rule
+                will be "/repos/books/:batch".
+        """
+        self._base_rule = base_rule
         self._routes = Mapper()
         self._route_metadata = {}
 
@@ -102,7 +111,7 @@ class RepositoryRegistry:
 
         route_uuid = str(uuid.uuid4())
         self._routes.connect(
-            pattern,
+            self._pattern_join(self._base_rule, pattern),
             __uuid__=route_uuid,  # used to identify the route
         )
         self._route_metadata[route_uuid] = dict(f=f, type_hints=get_type_hints(f))
@@ -142,6 +151,28 @@ class RepositoryRegistry:
                 raise TypeError(f'{query}: Expected Repository, got {type(repo)}')
         else:
             return None
+
+    @staticmethod
+    def _pattern_join(base: str, pattern: str) -> str:
+        """Join a base pattern with a pattern.
+
+        Args:
+            base: The base pattern.
+            pattern: The pattern to join.
+
+        Returns:
+            A joined pattern in normalised form suitable for use with the
+            repository registry.
+
+        Examples:
+            >>> RepositoryRegistry._pattern_join('/repos', '/books/:batch')
+            '/repos/books/:batch'
+            >>> RepositoryRegistry._pattern_join('/foo/bar/baz', 'path/to/repo')
+            '/foo/bar/baz/path/to/repo'
+        """
+        base = base.strip('/')
+        pattern = pattern.strip('/')
+        return f'/{base}/{pattern}'
 
     @staticmethod
     def _try_convert_params(params: dict, type_hints: dict) -> None:

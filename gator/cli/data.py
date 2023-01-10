@@ -4,7 +4,7 @@ import textwrap
 import typer
 from tabulate import tabulate
 
-from gator.cli.utils import section_spinner
+from gator.cli.helpers import section_spinner
 from gator.extensions.repolist import repolist
 
 app = typer.Typer()

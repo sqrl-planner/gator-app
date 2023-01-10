@@ -1,5 +1,5 @@
 """All defined repositories for implementing data providers."""
-from gator.data.pipeline.repo import Repository, RepositoryRegistry
+from gator.data.repo import Repository, RepositoryRegistry
 from gator.data.providers.uoft.utsg import UtsgArtsciTimetableDataset
 from gator.models.timetable import Session
 

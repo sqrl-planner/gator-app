@@ -1,4 +1,4 @@
 """Repolist extension."""
-from gator.data.pipeline.repo import RepositoryList
+from gator.data.repo import RepositoryList
 
 repolist = RepositoryList()
