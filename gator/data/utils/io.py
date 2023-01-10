@@ -62,19 +62,23 @@ def http_request(url: str, method: str = 'GET', stream: bool = False,
         as they are received; if `chunk_size` is None, the chunks will be
         yielded in whatever size they come in.
     """
+    if json:
+        # Disable streaming if JSON is enabled
+        stream = False
+
     response = requests.request(method, url, stream=stream, **kwargs)
 
     # Always use a chunk size of None if streaming is disabled
-    chunk_size = chunk_size if stream and not json else None
-    chunks = response.iter_content(chunk_size, decode_unicode, stream=stream)
-    if stream and not json:
+    chunk_size = chunk_size if stream else None
+    chunks = response.iter_content(chunk_size, decode_unicode)
+    if stream:
         # Return a generator that yields the chunks as they are received
         return chunks
     else:
-        # At this point, either json is True or stream is False
+        chunks = list(chunks)
         if json:
             # json is True, so eturn the entire response as JSON
             return jsonlib.loads(chunks[0])
-        elif json:
+        else:
             # stream is False, so return the entire response as a single chunk
             return chunks[0]
