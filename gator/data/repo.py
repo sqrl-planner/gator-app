@@ -12,8 +12,8 @@ import yaml
 from routes import Mapper
 
 from gator.data.dataset import Dataset
-from gator.data.utils import without_keys
 from gator.models.common import Record
+from gator.data.utils.serialization import without_keys
 
 
 @dataclass
