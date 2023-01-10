@@ -7,47 +7,35 @@ from typing import Any, Optional, Union, Generator
 import requests
 
 
-def read_file(fp: Union[str, Path], mode: str = 'rb',
-              chunk_size: Optional[int] = None, **kwargs: Any) -> Any:
+def stream_file(fp: Union[str, Path], mode: str = 'rb',
+                chunk_size: int = 1024**2, **kwargs: Any) \
+        -> Generator[bytes, None, None]:
     """Stream the contents of a file.
 
     Args:
         fp: The file path as a string or Path object.
         mode: The file mode. The default is to read the file in binary
             (rb) mode. See the `open` builtin for more information.
-        chunk_size: The size of the chunks o yield. If None, the entire file is
-            yielded as a single chunk.
+        chunk_size: The size of the chunks to yield. Defaults to 1 MB.
         kwargs: Additional keyword arguments passed to the `open` builtin.
-
-    Returns:
-        The contents of the file as a single chunk if `chunk_size` is None.
-        Otherwise, this will return a generator that yields the chunks as they
-        are read.
 
     Yields:
         Chunks of size `chunk_size` representing the contents of the file.
     """
     with open(fp, mode, **kwargs) as f:
-        if chunk_size is None:
-            # Return the entire file as a single chunk
-            return f.read()
-        else:
-            # Stream the chunks and yield them
-            while True:
-                chunk = f.read(chunk_size)
-                if not chunk:
-                    break
-                else:
-                    yield chunk
+        # Stream the chunks and yield them
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            else:
+                yield chunk
 
 
 def http_request(url: str, method: str = 'GET', stream: bool = False,
                  chunk_size: Optional[int] = None, decode_unicode: bool = False,
                  json: bool = False, **kwargs: Any) -> Any:
     """Perform an HTTP request.
-
-    By default, this will perform a GET request with no additional headers,
-    query parameters, or other arguments, and with streaming disabled.
 
     Args:
         url: The URL to request.
@@ -69,13 +57,10 @@ def http_request(url: str, method: str = 'GET', stream: bool = False,
     Returns:
         The response body as a single chunk of bytes if `json` is False.
         Otherwise, the response body is parsed as JSON and returned as a
-        dictionary. If `stream` is True, this will return a generator that
-        yields the chunks as they are received.
-
-    Yields:
-        Bytes of size `chunk_size` representing chunks of the response as they
-        are received. Only used if `stream` is True. If `chunk_size` is None,
-        the chunks will be yielded in whatever size they come in.
+        dictionary. If `stream` is True, this will return an iterator that
+        yields bytes of size `chunk_size` representing chunks of the response
+        as they are received; if `chunk_size` is None, the chunks will be
+        yielded in whatever size they come in.
     """
     response = requests.request(method, url, stream=stream, **kwargs)
 
