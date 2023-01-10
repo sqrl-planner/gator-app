@@ -5,10 +5,10 @@ from typing import Optional, Union
 import requests
 from bs4 import BeautifulSoup
 
-from gator.data.pipeline.datasets import Dataset
-from gator.data.pipeline.datasets.io import HttpResponseDataset
-from gator.data.providers.common import TimetableDataset
-from gator.data.utils import int_or_none, make_hash_sha256, nullable_convert
+from gator.data.dataset import SessionalDataset
+from gator.data.utils.io import http_request
+from gator.data.utils.hash import make_hash_sha256
+from gator.data.utils.serialization import int_or_none, nullable_convert
 from gator.models.common import Record
 from gator.models.timetable import (Campus, Course, CourseTerm, Instructor,
                                     MeetingDay, Organisation, Section,
@@ -16,7 +16,7 @@ from gator.models.timetable import (Campus, Course, CourseTerm, Instructor,
                                     SectionTeachingMethod, Session, Time)
 
 
-class UtsgArtsciTimetableDataset(TimetableDataset):
+class UtsgArtsciTimetableDataset(SessionalDataset):
     """A dataset for the Faculty of Arts and Science Timetable.
 
     Remarks:
@@ -53,18 +53,38 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
                 code.
         """
         super().__init__(session=session)
-        organisations = self._get_all_organisations()
-        self._courses = organisations.map(  # type: ignore
-            lambda org: self._get_courses_in_organisation(org)
-        ).flatten()
 
     def get(self) -> list[Record]:
-        """Get all  the courses in the Faculty of Arts and Science timetable.
+        """Get all the courses in the Faculty of Arts and Science timetable.
 
         Returns:
             A list of Record objects representing the courses in the timetable.
         """
-        return self._courses.get()
+        courses = []
+        for org in self._get_all_organisations():
+            courses.extend(self._get_courses_in_organisation(org))
+        return courses
+
+    def _get_all_organisations(self) -> list[Organisation]:
+        """Get all organisations from the Arts and Science timetable.
+
+        Returns:
+            A list of all the course departments in the Faculty of Arts and
+            Science as :class:`gator.models.Organisation` objects.
+
+        Raises:
+            ValueError: If the organizations could not be retrieved.
+        """
+        # Response is a JSON object of the form:
+        #   { 'orgs': { 'code': 'name', ... }, ... }
+        # where 'code' is the department code and 'name' is the department name.
+        orgs = http_request(f'{self.API_URL}/orgs', json=True,
+                            headers=self.DEFAULT_HEADERS)
+
+        return [
+            Organisation(code=code, name=name, campus=Campus.ST_GEORGE)
+            for code, name in orgs['orgs'].items()
+        ]
 
     def _get_courses_in_organisation(
             self, org: Organisation) -> list[Record]:
@@ -78,9 +98,9 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
             organisation.
         """
         endpoint_url = f'{self.API_URL}/{self.session.code}/courses?org={org.code}'
-        courses = HttpResponseDataset(endpoint_url, headers=self.DEFAULT_HEADERS).json()
-        courses = courses.kv_pairs().map(lambda pair: self._parse_course(org, pair[1]))
-        return courses
+        courses = http_request(endpoint_url, json=True,
+                               headers=self.DEFAULT_HEADERS)  # type: dict
+        return [self._parse_course(org, v) for v in courses.values()]
 
     def _parse_course(self, org: Organisation, payload: dict) \
             -> Record:
@@ -187,14 +207,15 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
     def _get_latest_session(cls, verify: bool = False) -> Session:
         """Get the latest session code.
 
-        Raise a ValueError if the session could not be found.
-
         Args:
             verify: Whether to verify the session code against the API.
 
         Returns:
             A Session object representing the latest session for the Faculty
             of Arts and Science timetable.
+
+        Raises:
+            ValueError: If the session code could not be found.
         """
         request = requests.get(cls.ROOT_URL, cls.DEFAULT_HEADERS)
         soup = BeautifulSoup(request.content, 'html.parser')
@@ -236,34 +257,6 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         # If we've found at least one course, the session code is valid
         return len(data) > 0
 
-    @classmethod
-    def _get_all_organisations(cls) -> Dataset:
-        """Get all organisations from the Arts and Science timetable.
-
-        Returns:
-            A Dataset object containing all the course departments in the
-            Faculty of Arts and Science as a list of Organisation objects.
-
-        Raise a ValueError if the organisations could not be retrieved.
-        Note that this does NOT mutate the database.
-        """
-        # Response is a JSON object of the form:
-        #   { 'orgs': { 'code': 'name', ... }, ... }
-        # where 'code' is the department code and 'name' is the department name.
-        dataset = HttpResponseDataset(
-            f'{cls.API_URL}/orgs',
-            headers=cls.DEFAULT_HEADERS
-        ).json()
-
-        def _org_parse(kv_pair: tuple[str, str]) -> Organisation:
-            """Parse a single organisation from the API response."""
-            code, name = kv_pair
-            return Organisation(code=code, name=name, campus=Campus.ST_GEORGE)
-
-        # Convert the response to a dataset of sqrl.models.Organisation objects
-        dataset = dataset.extract_key('orgs').as_dict().kv_pairs().map(_org_parse)
-        return dataset
-
     @staticmethod
     def _parse_time(time: str) -> Time:
         """Parse a time string into a Time object.
@@ -274,12 +267,13 @@ class UtsgArtsciTimetableDataset(TimetableDataset):
         Returns:
             A Time object representing the given time.
 
-        >>> time = UtsgArtsciTimetableDataset._parse_time("08:30")
-        >>> time.hour == 8 and time.minute == 30
-        True
-        >>> time = UtsgArtsciTimetableDataset._parse_time("11:00")
-        >>> time.hour == 11 and time.minute == 0
-        True
+        Examples:
+            >>> time = UtsgArtsciTimetableDataset._parse_time("08:30")
+            >>> time.hour == 8 and time.minute == 30
+            True
+            >>> time = UtsgArtsciTimetableDataset._parse_time("11:00")
+            >>> time.hour == 11 and time.minute == 0
+            True
         """
         # Parts is a list consisting of two elements: hours and minutes.
         parts = [int(part) for part in time.split(':')]
