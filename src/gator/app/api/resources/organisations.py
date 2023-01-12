@@ -5,13 +5,14 @@ from urllib.parse import unquote_plus
 from flask import request
 from flask_accepts import accepts, responds
 from flask_restx import Namespace, Resource
-
-from gator.app.api.helpers.mongoengine import get_or_404
-from gator.app.api.helpers.pagination import (
-    PaginationParamsSchema, as_paginated_response, paginate_query,
-    pagination_schema_for)
 from gator.core.models.timetable import Organisation
 from gator.core.schemas.timetable import OrganisationSchema
+
+from gator.app.api.helpers.mongoengine import get_or_404
+from gator.app.api.helpers.pagination import (PaginationParamsSchema,
+                                              as_paginated_response,
+                                              paginate_query,
+                                              pagination_schema_for)
 
 # Define API namespace
 ns = Namespace('organisations', description='Organisation related operations')
