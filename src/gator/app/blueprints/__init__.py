@@ -1,7 +1,7 @@
 """All blueprints for Gator."""
 from flask import Flask
 
-from gator.blueprints import ping
+from gator.app.blueprints import ping
 
 
 def register(app: Flask) -> None:

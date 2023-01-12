@@ -4,7 +4,7 @@ from typing import Optional, Type
 from flask_mongoengine import QuerySet
 from marshmallow import Schema, fields
 
-from gator.api.helpers.string import chomp
+from gator.app.api.helpers.string import chomp
 
 
 class PaginationParamsSchema(Schema):
