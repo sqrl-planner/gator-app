@@ -5,14 +5,14 @@ from urllib.parse import unquote_plus
 from flask import request
 from flask_accepts import accepts, responds
 from flask_restx import Namespace, Resource
+from gator.core.models.timetable import Course
+from gator.core.schemas.timetable import CourseSchema
 
 from gator.app.api.helpers.mongoengine import get_or_404
 from gator.app.api.helpers.pagination import (PaginationParamsSchema,
-                                          as_paginated_response,
-                                          paginate_query,
-                                          pagination_schema_for)
-from gator.core.models.timetable import Course
-from gator.core.schemas.timetable import CourseSchema
+                                              as_paginated_response,
+                                              paginate_query,
+                                              pagination_schema_for)
 
 # Define API namespace
 ns = Namespace('courses', description='Course related operations')
