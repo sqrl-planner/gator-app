@@ -1,7 +1,7 @@
 """Gator command-line interface."""
 import typer
 
-import gator.cli.data as data_cli
+import gator.app.cli.data as data_cli
 from gator.app import create_app
 
 app = typer.Typer()

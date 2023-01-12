@@ -2,8 +2,8 @@
 from flask import Flask
 from flask_restx import Api
 
-from gator.api.resources.courses import ns as courses_api
-from gator.api.resources.organisations import ns as organisations_api
+from gator.app.api.resources.courses import ns as courses_api
+from gator.app.api.resources.organisations import ns as organisations_api
 
 # Create API instance - this is the main entrypoint for the API
 api = Api(
