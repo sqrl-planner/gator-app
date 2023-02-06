@@ -45,10 +45,11 @@ def pagination_schema_for(schema: Type[Schema],
             chomp(schema.__name__, 'Schema')
         )
 
+    page_schema_name = chomp(schema.__name__, 'Schema') + 'PageSchema'
     return Schema.from_dict({
         objects_field_name: fields.Nested(schema, many=True, default=list()),
         'last_id': fields.String(load_default=None)
-    })
+    }, name=page_schema_name)
 
 
 def paginate_query(queryset: QuerySet, page_size: int = 20,
