@@ -2,11 +2,28 @@
 import os
 from typing import Optional, Union
 
+from gator.core.models.timetable import Session
+
+from gator.datasets.uoft.utsg import UtsgArtsciTimetableDataset
+
 APP_NAME = os.getenv('COMPOSE_PROJECT_NAME', 'gator')
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 SERVER_NAME = os.getenv('SERVER_NAME')
+
+
+# The datasets that are tracked by the registry.
+DATASETS = [
+    # 2023 Summer (20235)
+    UtsgArtsciTimetableDataset(Session(2023, summer=True)),
+    # 2022 Fall/Winter (20229)
+    UtsgArtsciTimetableDataset(Session(2022, summer=False)),
+    # 2022 Summer (20225)
+    UtsgArtsciTimetableDataset(Session(2022, summer=True)),
+    # 2021 Fall/Winter (20219)
+    UtsgArtsciTimetableDataset(Session(2021, summer=False))
+]
 
 
 # MongoDB configuration

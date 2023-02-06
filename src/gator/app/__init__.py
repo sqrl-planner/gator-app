@@ -35,8 +35,9 @@ def create_app(settings_override: Any = None) -> Flask:
     blueprints.register(app)
 
     # Register datasets
-    from gator.datasets import register_all_datasets
-    register_all_datasets()
+    from gator.app.extensions.dataset_registry import dataset_registry
+    for dataset in app.config.get('DATASETS', []):
+        dataset_registry.register(dataset)
 
     return app
 
