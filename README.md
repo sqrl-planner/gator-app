@@ -48,13 +48,7 @@ Alterntively, you can run an instance locally or use a number of database provid
 
 #### Pulling and syncing data
 
-First, copy the repolist starter file.
-```shell
-cp config/repolist.example.yml config/repolist.yml
-```
-Remember to update the ``REPOLIST_FILE`` environment variable if you're changing the path of this file. The repolist file contains a list of data repositories to monitor. By default, it is setup to monitor the latest version of every implemented dataset (e.g. utsg artsci timetable, etc...)
-
-If your database is empty, you'll need timetable information to use gator. To pull the latest data from all repos in your repolist, in the Docker container run
+If your database is empty, you'll need timetable information to use gator. To pull the latest data from all monitored repos, in the Docker container run
 ```shell
 gator data pull
 ```
