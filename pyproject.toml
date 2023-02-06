@@ -2,7 +2,7 @@
 name = "gator-app"
 version = "0.1.0"
 description = " A CLI and web API for centralized dataset aggregation and content management"
-authors = ["galacticglum <verchshon@gmail.com>"]
+authors = ["Shon Verch <verchshon@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 
