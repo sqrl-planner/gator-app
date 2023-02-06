@@ -26,11 +26,6 @@ def create_app(settings_override: Any = None) -> Flask:
     from gator.app.extensions.db import db
     db.init_app(app)
 
-    from gator.core.data.providers.repos import repo_registry
-
-    from gator.app.extensions.repolist import repolist
-    repolist.__init__(app.config['REPOLIST_FILE'], repo_registry)
-
     # Register api with the app
     import gator.app.api as api
     api.init_app(app)
@@ -38,6 +33,10 @@ def create_app(settings_override: Any = None) -> Flask:
     # Register blueprints
     from gator.app import blueprints
     blueprints.register(app)
+
+    # Register datasets
+    from gator.datasets import register_all_datasets
+    register_all_datasets()
 
     return app
 

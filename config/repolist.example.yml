@@ -1,5 +1,0 @@
-# Stores a list of repositories that should be monitored
-# Entries should match a repo route in the registry exactly
-- "/timetable/uoft/artsci/latest"   # Latest year/term available
-# - "/timetable/uoft/artsci/20209"  # 2020 Fall/Winter
-# - "/timetable/uoft/artsci/19665"  # 1966 Summer

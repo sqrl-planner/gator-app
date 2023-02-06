@@ -1,6 +1,5 @@
 """Application settings."""
 import os
-from pathlib import Path
 from typing import Optional, Union
 
 APP_NAME = os.getenv('COMPOSE_PROJECT_NAME', 'gator')
@@ -42,9 +41,6 @@ MONGODB_SETTINGS = {
 }
 
 API_DOCS_URL = os.getenv('API_DOCS_URL', None)
-
-REPOLIST_FILE = os.getenv('REPOLIST_FILE',
-                          str(Path('./config/repolist.yml').resolve()))
 
 # Whether to enforce payload validation by default when using the @api.expect() decorator.
 RESTX_VALIDATE = True
