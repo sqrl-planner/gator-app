@@ -251,22 +251,19 @@ class UtsgArtsciTimetableDataset(SessionalDataset):
         request = requests.get(cls.ROOT_URL, cls.DEFAULT_HEADERS)
         soup = BeautifulSoup(request.content, 'html.parser')
 
-        # The search button contains the session code
-        search_button = soup.find(
-            'input', {'id': 'searchButton', 'class': 'btnSearch'})
-        if search_button is None:
-            raise ValueError(
-                'failed to find session code - search button not found')
+        # Find script tag with "var session = <session_code>;" in it
+        SESSION_CODE_PATTERN = re.compile(r'var session = (\d{5});')
+        script_tag = soup.find('script', string=SESSION_CODE_PATTERN)
+        if script_tag is None:
+            raise ValueError('Failed to find script tag with session code!')
 
-        SESSION_CODE_PATTERN = r'(?<=searchCourses\(\')\d{5}(?=\'\))'
-        onclick_text = str(search_button['onclick'])  # type: ignore
-        matches = re.findall(SESSION_CODE_PATTERN, onclick_text)
+        matches = re.findall(SESSION_CODE_PATTERN, script_tag.text)
         if len(matches) == 0:
-            raise ValueError('failed to find session code!')
+            raise ValueError(f'Failed to find session code in {script_tag.text}')
 
         session_code = matches[0]
         if verify and not cls._is_session_code_valid(session_code):
-            raise ValueError('failed to find session code - invalid code')
+            raise ValueError('Found session code but failed to verify it!')
 
         return Session.parse(session_code)
 
