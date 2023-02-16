@@ -55,7 +55,7 @@ MONGODB_SETTINGS = {
     # init the Docker service.
     'username': _get_mongodb_credential('username', default='username'),
     'password': _get_mongodb_credential('password', default='password'),
-    'authSource': os.getenv('MONGODB_AUTH_SOURCE', 'admin'),
+    'authentication_source': os.getenv('MONGODB_AUTH_SOURCE', 'admin'),
 }
 
 API_DOCS_URL = os.getenv('API_DOCS_URL', None)
