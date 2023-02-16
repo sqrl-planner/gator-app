@@ -6,12 +6,10 @@ from gator.core.models.timetable import Session
 
 from gator.datasets.uoft.utsg import UtsgArtsciTimetableDataset
 
+# Server configuration
 APP_NAME = os.getenv('COMPOSE_PROJECT_NAME', 'gator')
-
-SECRET_KEY = os.getenv('SECRET_KEY')
-
 SERVER_NAME = os.getenv('SERVER_NAME')
-
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # The datasets that are tracked by the registry.
 DATASETS = [
@@ -27,8 +25,6 @@ DATASETS = [
 
 
 # MongoDB configuration
-
-
 def _get_mongodb_credential(credential_type: str,
                             default: Optional[str] = None) -> Union[str, None]:
     """Return a credential for the MongoDB database.
@@ -58,6 +54,7 @@ MONGODB_SETTINGS = {
     'authentication_source': os.getenv('MONGODB_AUTH_SOURCE', None),
 }
 
+# API configuration
 API_DOCS_URL = os.getenv('API_DOCS_URL', None)
 
 # Whether to enforce payload validation by default when using the @api.expect() decorator.
