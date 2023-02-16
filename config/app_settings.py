@@ -25,6 +25,8 @@ DATASETS = [
 
 
 # MongoDB configuration
+
+
 def _get_mongodb_credential(credential_type: str,
                             default: Optional[str] = None) -> Union[str, None]:
     """Return a credential for the MongoDB database.
