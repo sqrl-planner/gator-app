@@ -1,20 +1,25 @@
 """Gator api."""
+from importlib.metadata import version
+
 from flask import Flask
 from flask_restx import Api
 
+from gator.app.api.resources.buildings import ns as buildings_api
 from gator.app.api.resources.courses import ns as courses_api
-from gator.app.api.resources.organisations import ns as organisations_api
+from gator.app.api.resources.institutions import ns as institutions_api
 
 # Create API instance - this is the main entrypoint for the API
+# Read version from package metadata
 api = Api(
     title='Gator API',
-    version='1.0',
+    version=version('gator-app'),
     description='A RESTful API for Gator',
 )
 
 # Add namespaces to the API
 api.add_namespace(courses_api)
-api.add_namespace(organisations_api)
+api.add_namespace(institutions_api)
+api.add_namespace(buildings_api)
 
 
 def init_app(app: Flask) -> None:
