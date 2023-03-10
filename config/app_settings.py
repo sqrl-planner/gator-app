@@ -13,14 +13,14 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 # The datasets that are tracked by the registry.
 DATASETS = [
-    # 2023 Summer (20235)
-    UtsgArtsciTimetableDataset(Session(2023, summer=True)),
-    # 2022 Fall/Winter (20229)
-    UtsgArtsciTimetableDataset(Session(2022, summer=False)),
-    # 2022 Summer (20225)
-    UtsgArtsciTimetableDataset(Session(2022, summer=True)),
-    # 2021 Fall/Winter (20219)
-    UtsgArtsciTimetableDataset(Session(2021, summer=False))
+    # 2023 Summer
+    UtsgArtsciTimetableDataset(Session(2023, 'summer')),
+    # 2022 Fall - 2023 Winter
+    UtsgArtsciTimetableDataset([Session(2022, 'fall'), Session(2023, 'winter')]),
+    # 2022 Summer
+    UtsgArtsciTimetableDataset(Session(2022, 'summer')),
+    # 2021 Fall - 2022 Winter
+    UtsgArtsciTimetableDataset([Session(2021, 'fall'), Session(2022, 'winter')]),
 ]
 
 
