@@ -4,7 +4,7 @@ from typing import Optional, Union
 
 from gator.core.models.timetable import Session
 
-from gator.datasets.uoft.utsg import UtsgArtsciTimetableDataset
+from gator.datasets.uoft import TimetableDataset
 
 # Server configuration
 APP_NAME = os.getenv('COMPOSE_PROJECT_NAME', 'gator')
@@ -14,13 +14,13 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # The datasets that are tracked by the registry.
 DATASETS = [
     # 2023 Summer
-    UtsgArtsciTimetableDataset(Session(2023, 'summer')),
+    TimetableDataset([Session(2023, 'summer')]),
     # 2022 Fall - 2023 Winter
-    UtsgArtsciTimetableDataset([Session(2022, 'fall'), Session(2023, 'winter')]),
+    TimetableDataset([Session(2022, 'fall'), Session(2023, 'winter')]),
     # 2022 Summer
-    UtsgArtsciTimetableDataset(Session(2022, 'summer')),
+    TimetableDataset([Session(2022, 'summer')]),
     # 2021 Fall - 2022 Winter
-    UtsgArtsciTimetableDataset([Session(2021, 'fall'), Session(2022, 'winter')]),
+    TimetableDataset([Session(2021, 'fall'), Session(2022, 'winter')]),
 ]
 
 
@@ -32,8 +32,7 @@ def _get_mongodb_credential(credential_type: str,
     """Return a credential for the MongoDB database.
 
     Will first check the environment variable MONGODB_{credential_type},
-    and if that is not set, will check
-    MONGODB_INITDB_ROOT_{credential_type}.
+    and if that is not set, will check MONGODB_INITDB_ROOT_{credential_type}.
     """
     assert credential_type in {'username', 'password'},\
         'credential_type must be either "username" or "password"'
