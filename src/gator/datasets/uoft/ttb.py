@@ -49,10 +49,10 @@ class TimetableDataset(SessionalDataset):
     }
     _GET_PAGEABLE_COURSES_REQUEST_DATA: dict = {
         'courseCodeAndTitleProps': {
-          'courseCode': '',
-          'courseTitle': '',
-          'courseSectionCode': '',
-          'searchCourseDescription': True
+            'courseCode': '',
+            'courseTitle': '',
+            'courseSectionCode': '',
+            'searchCourseDescription': True
         },
         'departmentProps': [],
         'campuses': [],
@@ -135,7 +135,7 @@ class TimetableDataset(SessionalDataset):
             if not courses:
                 raise ValueError('Could not fetch courses from the respoonse '
                                  'payload returned by the timetable builder '
-                                f'API while fetching page {current_page}.')
+                                 f'API while fetching page {current_page}.')
 
             for course in courses:
                 sessions = '_'.join(course['sessions'])
