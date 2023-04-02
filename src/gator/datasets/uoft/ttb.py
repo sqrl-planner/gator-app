@@ -9,8 +9,10 @@ The API can be accessed at https://api.easi.utoronto.ca/ttb/.
 """
 from typing import Any, Iterator
 
+import gator.core.models.timetable as tt_models
 from gator.core.data.dataset import SessionalDataset
-from gator.core.models.timetable import Session
+from gator.core.data.utils.serialization import nullable_convert
+
 from mongoengine import Document
 from requests import request
 
@@ -90,11 +92,10 @@ class TimetableDataset(SessionalDataset):
         ).format(', '.join(s.human_str for s in self._sessions_sorted))
 
     def get(self) -> Iterator[tuple[str, Any]]:
-        """Return an iterator that lazily yields `(id, data)` records.
+        """Return an iterator that lazily yields `(id, data)` tuples.
 
-        The `id` should be a unique identifier for the record, and the `data`
-        can be any hashable object. A hash of the `data` object will be compared
-        with a hash stored in the database for the record with the given `id`.
+        The `id` is a unique identifier for the course, and `data` is the
+        raw course data returned by the timetable builder API.
 
         Remarks:
             This will make approximately :math:`\\frac{N}{p}` HTTP requests,
@@ -153,10 +154,64 @@ class TimetableDataset(SessionalDataset):
             id: The unique identifier for the record.
             data: The data for the record.
         """
-        raise NotImplementedError()
+        max_credits, min_credits = data['maxCredits'], data['minCredits']
+        if max_credits != min_credits:
+            print(f'WARNING: The course {id} has different max and min '
+                  f'credits ({max_credits} and {min_credits}, respectively). '
+                  f'This is not currently supported, so the max credits will '
+                  f'be used.')
+
+        cm_course_info = data['cmCourseInfo']
+
+        return tt_models.Course(
+            id=id,
+            code=data['code'],
+            name=data['name'],
+            sections=[self._process_section(s) for s in data['sections']],
+            sessions=[tt_models.Session.from_code(s) for s in data['sessions']],
+            term=tt_models.Term(data['sectionCode']),
+            credits=max_credits,
+            institution=...,
+            # Metadata fields
+            title=data.get('title'),
+            instruction_level=nullable_convert(
+                data.get('instructionLevel'), tt_models.InstructionLevel),
+            description=cm_course_info.get('description'),
+            categorical_requirements=...,
+            prerequisites=cm_course_info.get('prerequisitesText'),
+            corequisites=cm_course_info.get('corequisitesText'),
+            exclusions=cm_course_info.get('exclusionsText'),
+            recommended_preparation=cm_course_info.get('recommendedPreparation'),
+            cancelled=nullable_convert(
+                data.get('cancelled'), lambda x: x == 'Y'),
+            tags=[d['section']
+                  for d in cm_course_info.get('cmPublicationSections', [])
+                  if d.get('section') is not None],
+            notes=[note['content'] for note in cm_course_info.get('notes', [])
+                   if note.get('content')],
+        )
+
+    def _process_section(self, data: dict) -> tt_models.Section:
+        """Process the given section data into a :class:`Section`."""
+        return tt_models.Section(
+            teaching_method=tt_models.TeachingMethod(data['teachMethod']),
+            section_number=data['sectionNumber'],
+            meetings=...,
+            instructors=[tt_models.Instructor(
+                first_name=i['firstName'],
+                last_name=i['lastName']
+            ) for i in data.get('instructors', [])],
+            delivery_modes=[tt_models.SectionDeliveryMode(d['mode'])
+                            for d in data['deliveryModes']],
+            subtitle=data.get('subtitle'),
+            enrolment_info=...,
+            notes=[note['content'] for note in data.get('notes', [])
+                   if note.get('content')]
+        )
+
 
     @property
-    def _sessions_sorted(self) -> list[Session]:
+    def _sessions_sorted(self) -> list[tt_models.Session]:
         """Return the sessions sorted in descending order."""
         return sorted(self.sessions, reverse=True)
 
