@@ -12,7 +12,6 @@ from typing import Any, Iterator
 import gator.core.models.timetable as tt_models
 from gator.core.data.dataset import SessionalDataset
 from gator.core.data.utils.serialization import nullable_convert
-
 from mongoengine import Document
 from requests import request
 
@@ -208,7 +207,6 @@ class TimetableDataset(SessionalDataset):
             notes=[note['content'] for note in data.get('notes', [])
                    if note.get('content')]
         )
-
 
     @property
     def _sessions_sorted(self) -> list[tt_models.Session]:
