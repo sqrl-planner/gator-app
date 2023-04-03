@@ -7,9 +7,11 @@ Arts & Science, Engineering, etc.).
 
 The API can be accessed at https://api.easi.utoronto.ca/ttb/.
 """
-from typing import Any, Iterator
+import re
+from typing import Any, Iterator, Optional
 
 import gator.core.models.timetable as tt_models
+from gator.core.models.institution import Institution, Building, Location
 from gator.core.data.dataset import SessionalDataset
 from gator.core.data.utils.serialization import nullable_convert
 from mongoengine import Document
@@ -69,6 +71,23 @@ class TimetableDataset(SessionalDataset):
         'pageSize': 100,
         'direction': 'asc'
     }
+
+    # Private Instance Attributes:
+    #   _uoft_institution: The base institution for the University of Toronto.
+    #   _institutions: A mapping of institution codes to their respective
+    #       institutions. This includes all faculties and departments.
+    _uoft_institution: Institution
+    _institutions: dict[str, Institution]
+
+    def __init__(self, **kwargs: Any):
+        """Initialize the dataset."""
+        super().__init__(**kwargs)
+        self._uoft_institution = tt_models.Institution(
+            code='uoft',
+            name='University of Toronto',
+            type='university',
+        )
+        self._institutions = {}
 
     @property
     def slug(self) -> str:
@@ -153,60 +172,217 @@ class TimetableDataset(SessionalDataset):
             id: The unique identifier for the record.
             data: The data for the record.
         """
-        max_credits, min_credits = data['maxCredits'], data['minCredits']
+        max_credits, min_credits = data.get('maxCredits', 0), data.get(
+            'minCredits', 0)
         if max_credits != min_credits:
             print(f'WARNING: The course {id} has different max and min '
                   f'credits ({max_credits} and {min_credits}, respectively). '
                   f'This is not currently supported, so the max credits will '
                   f'be used.')
 
-        cm_course_info = data['cmCourseInfo']
+        campus_name = data['campus']
+        campus_institution = self._process_institution(
+            re.sub(r'\W+', '', campus_name.lower().replace(' ', '_')),
+            campus_name,
+            'campus',
+            self._uoft_institution
+        )
 
+        institution = campus_institution
+        if 'faculty' in data:
+            code, name = data['faculty']['code'], data['faculty']['name']
+            # Ensure that the faculty code is not the same as the campus code
+            if code != campus_institution.code and code not in {'ERIN', 'SCAR'}:
+                institution = self._process_institution(
+                    code, name, 'faculty', institution)
+
+        if 'department' in data:
+            code, name = data['department']['code'], data['department']['name']
+            # Ensure that the department code is not the same as the faculty
+            if code != institution.code:
+                institution = self._process_institution(
+                    code, name, 'department', institution)
+
+        try:
+            term = tt_models.Term(data['sectionCode'])
+        except ValueError:
+            print(f'WARNING: The course {id} has an invalid term code '
+                  f'({data["sectionCode"]}). Defaulting to FIRST_SEMESTER.')
+            term = tt_models.Term.FIRST_SEMESTER
+
+        cm_course_info = data.get('cmCourseInfo') or {}
         return tt_models.Course(
             id=id,
             code=data['code'],
             name=data['name'],
-            sections=[self._process_section(s) for s in data['sections']],
+            sections=[self._process_section(s, campus_institution)
+                      for s in data['sections']],
             sessions=[tt_models.Session.from_code(s) for s in data['sessions']],
-            term=tt_models.Term(data['sectionCode']),
+            term=term,
             credits=max_credits,
-            institution=...,
+            institution=institution,
             # Metadata fields
             title=data.get('title'),
             instruction_level=nullable_convert(
                 data.get('instructionLevel'), tt_models.InstructionLevel),
             description=cm_course_info.get('description'),
-            categorical_requirements=...,
+            categorical_requirements=[],  # TODO: Parse teh 'breadths' field
             prerequisites=cm_course_info.get('prerequisitesText'),
             corequisites=cm_course_info.get('corequisitesText'),
             exclusions=cm_course_info.get('exclusionsText'),
             recommended_preparation=cm_course_info.get('recommendedPreparation'),
-            cancelled=nullable_convert(
-                data.get('cancelled'), lambda x: x == 'Y'),
+            cancelled=nullable_convert(data.get('cancelled'),
+                                       self._yes_no_to_bool),
             tags=[d['section']
-                  for d in cm_course_info.get('cmPublicationSections', [])
+                  for d in (cm_course_info.get('cmPublicationSections') or [])
                   if d.get('section') is not None],
             notes=[note['content'] for note in cm_course_info.get('notes', [])
                    if note.get('content')],
         )
 
-    def _process_section(self, data: dict) -> tt_models.Section:
+    def _process_section(self, data: dict,
+                         campus_institution: tt_models.Institution) \
+            -> tt_models.Section:
         """Process the given section data into a :class:`Section`."""
+        # Process each delivery mode into a SectionDeliveryMode object
+        # The list should be the same length as the number of sessions
+        # that the course is offered in. Each delivery mode is associated
+        # with a session, so the delivery modes should be in the same
+        # order as the sessions.
+        delivery_modes = []
+        for d in data['deliveryModes']:
+            try:
+                delivery_modes.append(tt_models.SectionDeliveryMode(d['mode']))
+            except ValueError:
+                print(f'WARNING: The section {data["sectionNumber"]} has an '
+                      f'invalid delivery mode ({d["mode"]}). Defaulting to '
+                      f'IN_PERSON.')
+                delivery_modes.append(tt_models.SectionDeliveryMode.IN_PERSON)
+
         return tt_models.Section(
             teaching_method=tt_models.TeachingMethod(data['teachMethod']),
             section_number=data['sectionNumber'],
-            meetings=...,
+            # Process each meeting into a SectionMeeting object
+            meetings=[self._process_section_meeting(m, campus_institution)
+                      for m in data['meetingTimes']],
+            # Process each insutrctor into an Instructor object
             instructors=[tt_models.Instructor(
                 first_name=i['firstName'],
                 last_name=i['lastName']
             ) for i in data.get('instructors', [])],
-            delivery_modes=[tt_models.SectionDeliveryMode(d['mode'])
-                            for d in data['deliveryModes']],
+            delivery_modes=delivery_modes,
             subtitle=data.get('subtitle'),
-            enrolment_info=...,
+            # The cancelled field is not always present in the data. Default
+            # to False ('N') if it is not present.
+            cancelled=self._yes_no_to_bool(data.get('cancelled', 'N')),
+            # Process the enrolment info into an EnrolmentInfo object
+            enrolment_info=tt_models.EnrolmentInfo(
+                # One or more of these fields may be missing or empty, so
+                # they should left as None to indicate that they are unknown.
+                current_enrolment=data.get('currentEnrolment'),
+                max_enrolment=data.get('maxEnrolment'),
+                # The waitlist indicator is not always present in the data.
+                # Default to False ('N') if it is not present.
+                has_waitlist=self._yes_no_to_bool(data.get('waitlistInd', 'N')),
+                current_waitlist_size=data.get('currentWaitlist'),
+                enrolment_indicator=data.get('enrolmentInd') or None,
+            ),
+            # Process each note that has non-empty content
             notes=[note['content'] for note in data.get('notes', [])
-                   if note.get('content')]
+                   if note.get('content')],
+            # TODO: Proper handling of linked sections
+            # For now, we just store them as strings but we'll want to formalize
+            # the relationship between sections in the future.
+            linked_sections=[
+                f'{ls["teachMethod"]} {ls["sectionNumber"]}'
+                for ls in data.get('linkedSections', [])
+            ]
         )
+
+    def _process_section_meeting(self, data: dict,
+                                 campus_institution: tt_models.Institution) \
+            -> tt_models.SectionMeeting:
+        """Process the given section meeting data into a :class:`SectionMeeting`."""
+        start, end = data['start'], data['end']
+        if start['day'] != end['day']:
+            print(f'WARNING: The section meeting {data} has a start and end '
+                    f'on different days. This is not currently supported, so '
+                    f'the end day will be used.')
+
+        building = data.get('building')   # type: Optional[dict]
+        return tt_models.SectionMeeting(
+            day=end['day'] - 1,  # Convert from 1-indexed to 0-indexed
+            start_time=start['millisofday'],
+            end_time=end['millisofday'],
+            session=tt_models.Session.from_code(data['sessionCode']),
+            location=Location(
+                building=Building(
+                    code=building['buildingCode'],
+                    institution=campus_institution,
+                    name=building.get('buildingName'),
+                    map_url=building.get('buildingUrl')
+                ),
+                room=''.join([building.get('buildingRoomNumber'),
+                              building.get('buildingRoomSuffix', '')]),
+            ) if building is not None else None,
+            # Convert the repetition time into a WeeklyRepetitionSchedule object
+            repetition_schedule=self._process_repetition_time(
+                data['repetitionTime']),
+        )
+
+    def _process_repetition_time(self, repetition_time: str) \
+            -> tt_models.WeeklyRepetitionSchedule:
+        """Process the given repetition time into a :class:`RepetitionSchedule`.
+
+        The repetition time is a string that describes how a section meeting
+        is repeated on a weekly basis. It is one of the following:
+
+        - 'MANUAL': The meeting is not repeated on a weekly basis.
+        - 'ONCE_A_WEEK': The meeting is repeated once a week.
+        - 'FIRST_AND_THIRD_WEEK': In a 3-week cycle, the meeting is repeated
+            on the first and third weeks.
+        - 'SECOND_AND_FOURTH_WEEK': In a 4-week cycle, the meeting is repeated
+            on the second and fourth weeks.
+
+        Args:
+            repetition_time: The repetition time to process.
+
+        Raises:
+            ValueError: If the repetition time is not one of the expected values.
+        """
+        if repetition_time == 'MANUAL' or repetition_time == 'ONCE_A_WEEK':
+            # Not sure how to handle this case so we'll treat this the same
+            # as 'ONCE_A_WEEK' for now.
+            return tt_models.WeeklyRepetitionSchedule(schedule=0b1)
+        elif repetition_time == 'FIRST_AND_THIRD_WEEK':
+            return tt_models.WeeklyRepetitionSchedule(schedule=0b101)
+        elif repetition_time == 'SECOND_AND_FOURTH_WEEK':
+            return tt_models.WeeklyRepetitionSchedule(schedule=0b0101)
+        else:
+            raise ValueError(
+                f'Encountered unexpected repetition time: "{repetition_time}"')
+
+    def _process_institution(self, code: str, name: str, institution_type: str,
+                             parent: Optional[tt_models.Institution] = None) \
+            -> tt_models.Institution:
+        """Process the given faculty data into a :class:`Institution`.
+
+        Create a new institution if one does not already exist and store it
+        in :attr:`_faculty_institutions` for future use.
+        """
+        # For uniqueness, combine the type, code, and name into a single key
+        k = f'{institution_type}-{code}:{name}'
+        if k not in self._institutions:
+            institution = tt_models.Institution(
+                code=code,
+                name=name,
+                type=institution_type,
+                parent=parent
+            )
+
+            self._institutions[k] = institution
+
+        return self._institutions[k]
 
     @property
     def _sessions_sorted(self) -> list[tt_models.Session]:
@@ -220,3 +396,24 @@ class TimetableDataset(SessionalDataset):
         Raise a ValueError if the session could not be found.
         """
         raise NotImplementedError()
+
+    @staticmethod
+    def _yes_no_to_bool(value: str) -> bool:
+        """Convert a 'Y' or 'N' string to a boolean.
+
+        Raise a ValueError if the value could not be converted.
+
+        Examples:
+            >>> _yes_no_to_bool('Y')
+            True
+            >>> _yes_no_to_bool('N')
+            False
+            >>> _yes_no_to_bool('X')
+            ValueError: Could not convert X to a boolean.
+        """
+        if value == 'Y':
+            return True
+        elif value == 'N':
+            return False
+        else:
+            raise ValueError(f'Could not convert {value} to a boolean.')
