@@ -11,9 +11,9 @@ import re
 from typing import Any, Iterator, Optional
 
 import gator.core.models.timetable as tt_models
-from gator.core.models.institution import Institution, Building, Location
 from gator.core.data.dataset import SessionalDataset
 from gator.core.data.utils.serialization import nullable_convert
+from gator.core.models.institution import Building, Institution, Location
 from mongoengine import Document
 from requests import request
 
@@ -306,8 +306,8 @@ class TimetableDataset(SessionalDataset):
         start, end = data['start'], data['end']
         if start['day'] != end['day']:
             print(f'WARNING: The section meeting {data} has a start and end '
-                    f'on different days. This is not currently supported, so '
-                    f'the end day will be used.')
+                  f'on different days. This is not currently supported, so '
+                  f'the end day will be used.')
 
         building = data.get('building')   # type: Optional[dict]
         return tt_models.SectionMeeting(
