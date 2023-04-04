@@ -4,6 +4,7 @@ from importlib.metadata import version
 from flask import Flask
 from flask_restx import Api
 
+import gator.app.api.resources.patch_swagger  # noqa: F401
 from gator.app.api.resources.buildings import ns as buildings_api
 from gator.app.api.resources.courses import ns as courses_api
 from gator.app.api.resources.institutions import ns as institutions_api

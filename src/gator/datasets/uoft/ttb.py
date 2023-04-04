@@ -31,8 +31,8 @@ class TimetableDataset(SessionalDataset):
         ROOT_URL: The url for the timetable builder (TTB) homepage.
         API_URL: The root url for the timetable builder (TTB) API.
     """
-    ROOT_URL = 'https://ttb.utoronto.ca/'
-    API_URL = 'https://api.easi.utoronto.ca/ttb/getPageableCourses/'
+    ROOT_URL: str = 'https://ttb.utoronto.ca/'
+    API_URL: str = 'https://api.easi.utoronto.ca/ttb/getPageableCourses/'
 
     # Private Class Attributes:
     #   _DEFAULT_HEADERS: The default headers to use for HTTP requests.
@@ -110,18 +110,22 @@ class TimetableDataset(SessionalDataset):
         ).format(', '.join(s.human_str for s in self._sessions_sorted))
 
     def get(self) -> Iterator[tuple[str, Any]]:
-        """Return an iterator that lazily yields `(id, data)` tuples.
+        r"""Return an iterator that lazily yields `(id, data)` tuples.
 
         The `id` is a unique identifier for the course, and `data` is the
         raw course data returned by the timetable builder API.
 
         Remarks:
-            This will make approximately :math:`\\frac{N}{p}` HTTP requests,
+            This will make approximately :math:`\frac{N}{p}` HTTP requests,
             where :math:`N` is the number of total courses and :math:`p` is the
             page size (which is 100 by default). Each page will be processed
             and its data will be yielded. The number of requests can be
             reduced by increasing the page size, but if too high, this may
             result in getting throttled or timed out by the API.
+
+        Raises:
+            ValueError: If the API returns a non-200 status code,
+                or if the response data is invalid.
         """
         params = self._GET_PAGEABLE_COURSES_REQUEST_DATA.copy()
         params['sessions'] = [s.code for s in self._sessions_sorted]
@@ -146,18 +150,24 @@ class TimetableDataset(SessionalDataset):
 
             # Fetch the data from the response
             response = response.json()
-            courses = response.get('payload', {
-                'pageableCourse': {'courses': None}
-            })['pageableCourse']['courses']
+            courses = response.get('payload', {})\
+                              .get('pageableCourse', {})\
+                              .get('courses', None)
 
             if not courses:
-                raise ValueError('Could not fetch courses from the respoonse '
+                raise ValueError('Could not fetch courses from the response '
                                  'payload returned by the timetable builder '
                                  f'API while fetching page {current_page}.')
 
             for course in courses:
-                sessions = '_'.join(course['sessions'])
-                full_id = f'{course["code"]}-{course["sectionCode"]}-{sessions}'
+                try:
+                    sessions = '_'.join(course['sessions'])
+                    full_id = f'{course["code"]}-{course["sectionCode"]}-{sessions}'
+                except KeyError as e:
+                    print(f'WARNING: Could not fetch key {e} while processing '
+                          f'course {course}. Skipping...')
+                    continue
+
                 yield full_id, course
 
             # Stop iterating once a page is returned with less than the
@@ -226,7 +236,7 @@ class TimetableDataset(SessionalDataset):
             instruction_level=nullable_convert(
                 data.get('instructionLevel'), tt_models.InstructionLevel),
             description=cm_course_info.get('description'),
-            categorical_requirements=[],  # TODO: Parse teh 'breadths' field
+            categorical_requirements=[],  # TODO: Parse the 'breadths' field
             prerequisites=cm_course_info.get('prerequisitesText'),
             corequisites=cm_course_info.get('corequisitesText'),
             exclusions=cm_course_info.get('exclusionsText'),
@@ -404,11 +414,13 @@ class TimetableDataset(SessionalDataset):
         Raise a ValueError if the value could not be converted.
 
         Examples:
-            >>> _yes_no_to_bool('Y')
+            >>> TimetableDataset._yes_no_to_bool('Y')
             True
-            >>> _yes_no_to_bool('N')
+            >>> TimetableDataset._yes_no_to_bool('N')
             False
-            >>> _yes_no_to_bool('X')
+            >>> TimetableDataset._yes_no_to_bool('X')
+            Traceback (most recent call last):
+            ...
             ValueError: Could not convert X to a boolean.
         """
         if value == 'Y':

@@ -482,14 +482,14 @@ email = ["email-validator"]
 
 [[package]]
 name = "gator-core"
-version = "2.0.0rc9"
+version = "2.0.0rc12"
 description = "A dataset aggregation framework for Sqrl Planner."
 category = "main"
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "gator_core-2.0.0rc9-py3-none-any.whl", hash = "sha256:da0b0e82842d9d43234eac4315a6a2952a773072968218424798f0b7212be005"},
-    {file = "gator_core-2.0.0rc9.tar.gz", hash = "sha256:99487f18335efd79abff881494d3ef487e6df95b07cbc55719e6820fa8f74479"},
+    {file = "gator_core-2.0.0rc12-py3-none-any.whl", hash = "sha256:4a98a411bfe14df2cdb889a2404f7876c7110ea0bd136d691d83d9c21543021b"},
+    {file = "gator_core-2.0.0rc12.tar.gz", hash = "sha256:a63ffc63e80105725a5e8c4b975aabdd59446285c087976ba258f557dd362dfc"},
 ]
 
 [package.dependencies]
@@ -1479,4 +1479,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "b9a5753dbe13c41eee080af6a88b1c7ad0fda2fcb956048c3b69d29bae623e47"
+content-hash = "3696962bf383e6ef49b0abdfb14d6670f11a3edb5c1e3f042e09f7f3277de09e"
