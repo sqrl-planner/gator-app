@@ -7,17 +7,16 @@ Arts & Science, Engineering, etc.).
 
 The API can be accessed at https://api.easi.utoronto.ca/ttb/.
 """
-import re
 import logging
+import re
 from typing import Any, Iterator, Optional
-
-from requests import request
-from marshmallow import Schema, fields, pre_load, post_load, EXCLUDE
 
 import gator.core.models.timetable as tt_models
 from gator.core.data.dataset import SessionalDataset
 from gator.core.data.utils.serialization import nullable_convert
 from gator.core.models.institution import Building, Institution, Location
+from marshmallow import EXCLUDE, Schema, fields, post_load, pre_load
+from requests import request
 
 logger = logging.getLogger(__name__)
 
@@ -466,7 +465,7 @@ class TtbInstructorSchema(Schema):
         return tt_models.Instructor(**data)
 
 
-def _get_notes(obj: dict) ->list[str]:
+def _get_notes(obj: dict) -> list[str]:
     """Get the notes field from the object.
 
     Args:
