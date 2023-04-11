@@ -2,9 +2,9 @@
 import os
 
 from gator.core.models.timetable import Session
-from gator.datasets.uoft import TimetableDataset
-from config.utils import get_mongodb_credential, get_record_storage_config
 
+from config.utils import get_mongodb_credential, get_record_storage_config
+from gator.datasets.uoft import TimetableDataset
 
 # Server configuration
 APP_NAME = os.getenv('COMPOSE_PROJECT_NAME', 'gator')
