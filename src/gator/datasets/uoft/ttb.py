@@ -192,10 +192,9 @@ class TimetableDataset(SessionalDataset):
 
         campus_name = data['campus']
         campus_institution = self._process_institution(
-            re.sub(r'\W+', '', campus_name.lower().replace(' ', '_')),
             campus_name,
             'campus',
-            self._uoft_institution
+            parent=self._uoft_institution
         )
 
         institution = campus_institution
@@ -204,14 +203,14 @@ class TimetableDataset(SessionalDataset):
             # Ensure that the faculty code is not the same as the campus code
             if code != campus_institution.code and code not in {'ERIN', 'SCAR'}:
                 institution = self._process_institution(
-                    code, name, 'faculty', institution)
+                    name, 'faculty', code, parent=institution)
 
         if 'department' in data:
             code, name = data['department']['code'], data['department']['name']
             # Ensure that the department code is not the same as the faculty
             if code != institution.code:
                 institution = self._process_institution(
-                    code, name, 'department', institution)
+                    name, 'department', code, parent=institution)
 
         try:
             term = tt_models.Term(data['sectionCode'])
@@ -372,14 +371,30 @@ class TimetableDataset(SessionalDataset):
             raise ValueError(
                 f'Encountered unexpected repetition time: "{repetition_time}"')
 
-    def _process_institution(self, code: str, name: str, institution_type: str,
+    def _process_institution(self, name: str, institution_type: str,
+                             code: Optional[str] = None,
                              parent: Optional[tt_models.Institution] = None) \
             -> tt_models.Institution:
         """Process the given faculty data into a :class:`Institution`.
 
         Create a new institution if one does not already exist and store it
         in :attr:`_faculty_institutions` for future use.
+
+        Args:
+            name: The name of the institution.
+            institution_type: The type of the institution.
+            code: The code of the institution. Used to uniquely identify the
+                institution. If not provided, it will be generated from the
+                name by removing all non-alphanumeric characters and replacing
+                spaces with underscores to form a valid code. For example,
+                "St. George" would be converted to "st_george".
+            parent: The parent institution of this institution.
         """
+        if code is None:
+            # Remove all non-alphanumeric characters and replace spaces with
+            # underscores to convert the campus name into a valid code
+            code = re.sub(r'\W+', '', name.lower().replace(' ', '_'))
+
         # For uniqueness, combine the type, code, and name into a single key
         k = f'{institution_type}-{code}:{name}'
         if k not in self._institutions:

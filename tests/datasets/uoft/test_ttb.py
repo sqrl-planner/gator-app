@@ -97,3 +97,37 @@ class TestTimetableDataset:
         with pytest.raises(ValueError) as excinfo:
             list(dataset.get())
         assert 'Could not fetch courses' in str(excinfo.value)
+
+    def test_get_cant_gen_id(self, http_server: HTTPServer,
+                             dataset: TimetableDataset,
+                             capfd: pytest.CaptureFixture) -> None:
+        """Test the :meth:`gator.datasets.uoft.ttb.TimetableDataset.get` method with a course whose
+        full code (code + section code + sessions) cannot be determined.
+        """
+        PAYLOAD_TO_SEND = {
+            'payload': {
+                'pageableCourse': {
+                    'courses': [
+                        # Missing code
+                        {'sectionCode': 'F', 'sessions': ['20229']},
+                        # Missing section code
+                        {'code': 'MAT123H1F', 'sessions': ['20229']},
+                        # Missing sessions
+                        {'code': 'MAT123H1F', 'sectionCode': 'F'},
+                    ]
+                }
+            }
+        }
+        MISSING_KEYS = ['code', 'sectionCode', 'sessions']
+
+        http_server.clear_all_handlers()
+        http_server.expect_request('/getPageableCourses', method='POST')\
+            .respond_with_json(PAYLOAD_TO_SEND)
+
+        list(dataset.get())
+        out, _ = capfd.readouterr()
+
+        all_courses = PAYLOAD_TO_SEND['payload']['pageableCourse']['courses']
+        for course, missing_key in zip(all_courses, MISSING_KEYS):
+            assert f'Could not fetch key \'{missing_key}\' while processing '\
+                   f'course {course}' in out
