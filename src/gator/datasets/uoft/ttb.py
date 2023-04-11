@@ -8,14 +8,18 @@ Arts & Science, Engineering, etc.).
 The API can be accessed at https://api.easi.utoronto.ca/ttb/.
 """
 import re
+import logging
 from typing import Any, Iterator, Optional
+
+from requests import request
+from marshmallow import Schema, fields, pre_load, post_load, EXCLUDE
 
 import gator.core.models.timetable as tt_models
 from gator.core.data.dataset import SessionalDataset
 from gator.core.data.utils.serialization import nullable_convert
 from gator.core.models.institution import Building, Institution, Location
-from mongoengine import Document
-from requests import request
+
+logger = logging.getLogger(__name__)
 
 
 class TimetableDataset(SessionalDataset):
@@ -79,15 +83,23 @@ class TimetableDataset(SessionalDataset):
     _uoft_institution: Institution
     _institutions: dict[str, Institution]
 
-    def __init__(self, **kwargs: Any):
-        """Initialize the dataset."""
+    def __init__(self, institutions: Optional[dict[str, Institution]] = None,
+                 **kwargs) -> None:
+        """Initialize the dataset.
+
+        Args:
+            institutions: A mapping of institution codes to their respective
+                institutions. This includes all faculties and departments.
+                Use this to seed the dataset with existing institutions.
+            **kwargs: The keyword arguments to pass to the parent class.
+        """
         super().__init__(**kwargs)
         self._uoft_institution = tt_models.Institution(
             code='uoft',
             name='University of Toronto',
             type='university',
         )
-        self._institutions = {}
+        self._institutions = institutions or {}
 
     @property
     def slug(self) -> str:
@@ -109,7 +121,7 @@ class TimetableDataset(SessionalDataset):
             '{} sessions. Scraped from the timetable builder API.'
         ).format(', '.join(s.human_str for s in self._sessions_sorted))
 
-    def get(self) -> Iterator[tuple[str, Any]]:
+    def get(self) -> Iterator[tuple[str, dict[str, Any]]]:
         r"""Return an iterator that lazily yields `(id, data)` tuples.
 
         The `id` is a unique identifier for the course, and `data` is the
@@ -164,8 +176,10 @@ class TimetableDataset(SessionalDataset):
                     sessions = '_'.join(course['sessions'])
                     full_id = f'{course["code"]}-{course["sectionCode"]}-{sessions}'
                 except KeyError as e:
-                    print(f'WARNING: Could not fetch key {e} while processing '
-                          f'course {course}. Skipping...')
+                    logger.warn(
+                        f'Could not fetch key {e} while processing '
+                        f'course {course}. Skipping...'
+                    )
                     continue
 
                 yield full_id, course
@@ -175,21 +189,24 @@ class TimetableDataset(SessionalDataset):
             if len(courses) < params['pageSize']:
                 break
 
-    def process(self, id: str, data: Any) -> Document:
-        """Process the given record into a :class:`mongoengine.Document`.
+    def process(self, id: str, data: dict[str, Any]) -> tt_models.Course:
+        """Process the given record into a :class:`Course` model.
 
         Args:
             id: The unique identifier for the record.
             data: The data for the record.
         """
-        max_credits, min_credits = data.get('maxCredits', 0), data.get(
-            'minCredits', 0)
-        if max_credits != min_credits:
-            print(f'WARNING: The course {id} has different max and min '
-                  f'credits ({max_credits} and {min_credits}, respectively). '
-                  f'This is not currently supported, so the max credits will '
-                  f'be used.')
+        # Set the id for the course
+        data['id'] = id
 
+        # Add course id to the logger so we know which course is being processed
+        global logger
+        logger = logging.LoggerAdapter(
+            logger,
+            {'course_id': id}
+        )
+
+        # Generate the institution hierarchy from the data
         campus_name = data['campus']
         campus_institution = self._process_institution(
             campus_name,
@@ -212,164 +229,18 @@ class TimetableDataset(SessionalDataset):
                 institution = self._process_institution(
                     name, 'department', code, parent=institution)
 
-        try:
-            term = tt_models.Term(data['sectionCode'])
-        except ValueError:
-            print(f'WARNING: The course {id} has an invalid term code '
-                  f'({data["sectionCode"]}). Defaulting to FIRST_SEMESTER.')
-            term = tt_models.Term.FIRST_SEMESTER
+        schema = TtbCourseSchema()
+        course = schema.load(data)  # type: ignore
+        course.institution = institution  # type: ignore
 
-        cm_course_info = data.get('cmCourseInfo') or {}
-        return tt_models.Course(
-            id=id,
-            code=data['code'],
-            name=data['name'],
-            sections=[self._process_section(s, campus_institution)
-                      for s in data['sections']],
-            sessions=[tt_models.Session.from_code(s) for s in data['sessions']],
-            term=term,
-            credits=max_credits,
-            institution=institution,
-            # Metadata fields
-            title=data.get('title'),
-            instruction_level=nullable_convert(
-                data.get('instructionLevel'), tt_models.InstructionLevel),
-            description=cm_course_info.get('description'),
-            categorical_requirements=[],  # TODO: Parse the 'breadths' field
-            prerequisites=cm_course_info.get('prerequisitesText'),
-            corequisites=cm_course_info.get('corequisitesText'),
-            exclusions=cm_course_info.get('exclusionsText'),
-            recommended_preparation=cm_course_info.get('recommendedPreparation'),
-            cancelled=nullable_convert(data.get('cancelled'),
-                                       self._yes_no_to_bool),
-            tags=[d['section']
-                  for d in (cm_course_info.get('cmPublicationSections') or [])
-                  if d.get('section') is not None],
-            notes=[note['content'] for note in cm_course_info.get('notes', [])
-                   if note.get('content')],
-        )
+        # Propogate the campus institution to all buildings under the course
+        for section in course.sections:  # type: ignore
+            for meeting in section.meetings:
+                if meeting.location is not None:
+                    building = meeting.location.building
+                    building.institution = campus_institution
 
-    def _process_section(self, data: dict,
-                         campus_institution: tt_models.Institution) \
-            -> tt_models.Section:
-        """Process the given section data into a :class:`Section`."""
-        # Process each delivery mode into a SectionDeliveryMode object
-        # The list should be the same length as the number of sessions
-        # that the course is offered in. Each delivery mode is associated
-        # with a session, so the delivery modes should be in the same
-        # order as the sessions.
-        delivery_modes = []
-        for d in data['deliveryModes']:
-            try:
-                delivery_modes.append(tt_models.SectionDeliveryMode(d['mode']))
-            except ValueError:
-                print(f'WARNING: The section {data["sectionNumber"]} has an '
-                      f'invalid delivery mode ({d["mode"]}). Defaulting to '
-                      f'IN_PERSON.')
-                delivery_modes.append(tt_models.SectionDeliveryMode.IN_PERSON)
-
-        return tt_models.Section(
-            teaching_method=tt_models.TeachingMethod(data['teachMethod']),
-            section_number=data['sectionNumber'],
-            # Process each meeting into a SectionMeeting object
-            meetings=[self._process_section_meeting(m, campus_institution)
-                      for m in data['meetingTimes']],
-            # Process each insutrctor into an Instructor object
-            instructors=[tt_models.Instructor(
-                first_name=i['firstName'],
-                last_name=i['lastName']
-            ) for i in data.get('instructors', [])],
-            delivery_modes=delivery_modes,
-            subtitle=data.get('subtitle'),
-            # The cancelled field is not always present in the data. Default
-            # to False ('N') if it is not present.
-            cancelled=self._yes_no_to_bool(data.get('cancelled', 'N')),
-            # Process the enrolment info into an EnrolmentInfo object
-            enrolment_info=tt_models.EnrolmentInfo(
-                # One or more of these fields may be missing or empty, so
-                # they should left as None to indicate that they are unknown.
-                current_enrolment=data.get('currentEnrolment'),
-                max_enrolment=data.get('maxEnrolment'),
-                # The waitlist indicator is not always present in the data.
-                # Default to False ('N') if it is not present.
-                has_waitlist=self._yes_no_to_bool(data.get('waitlistInd', 'N')),
-                current_waitlist_size=data.get('currentWaitlist'),
-                enrolment_indicator=data.get('enrolmentInd') or None,
-            ),
-            # Process each note that has non-empty content
-            notes=[note['content'] for note in data.get('notes', [])
-                   if note.get('content')],
-            # TODO: Proper handling of linked sections
-            # For now, we just store them as strings but we'll want to formalize
-            # the relationship between sections in the future.
-            linked_sections=[
-                f'{ls["teachMethod"]} {ls["sectionNumber"]}'
-                for ls in data.get('linkedSections', [])
-            ]
-        )
-
-    def _process_section_meeting(self, data: dict,
-                                 campus_institution: tt_models.Institution) \
-            -> tt_models.SectionMeeting:
-        """Process the given section meeting data into a :class:`SectionMeeting`."""
-        start, end = data['start'], data['end']
-        if start['day'] != end['day']:
-            print(f'WARNING: The section meeting {data} has a start and end '
-                  f'on different days. This is not currently supported, so '
-                  f'the end day will be used.')
-
-        building = data.get('building')   # type: Optional[dict]
-        return tt_models.SectionMeeting(
-            day=end['day'] - 1,  # Convert from 1-indexed to 0-indexed
-            start_time=start['millisofday'],
-            end_time=end['millisofday'],
-            session=tt_models.Session.from_code(data['sessionCode']),
-            location=Location(
-                building=Building(
-                    code=building['buildingCode'],
-                    institution=campus_institution,
-                    name=building.get('buildingName'),
-                    map_url=building.get('buildingUrl')
-                ),
-                room=''.join([building.get('buildingRoomNumber'),
-                              building.get('buildingRoomSuffix', '')]),
-            ) if building is not None else None,
-            # Convert the repetition time into a WeeklyRepetitionSchedule object
-            repetition_schedule=self._process_repetition_time(
-                data['repetitionTime']),
-        )
-
-    def _process_repetition_time(self, repetition_time: str) \
-            -> tt_models.WeeklyRepetitionSchedule:
-        """Process the given repetition time into a :class:`RepetitionSchedule`.
-
-        The repetition time is a string that describes how a section meeting
-        is repeated on a weekly basis. It is one of the following:
-
-        - 'MANUAL': The meeting is not repeated on a weekly basis.
-        - 'ONCE_A_WEEK': The meeting is repeated once a week.
-        - 'FIRST_AND_THIRD_WEEK': In a 3-week cycle, the meeting is repeated
-            on the first and third weeks.
-        - 'SECOND_AND_FOURTH_WEEK': In a 4-week cycle, the meeting is repeated
-            on the second and fourth weeks.
-
-        Args:
-            repetition_time: The repetition time to process.
-
-        Raises:
-            ValueError: If the repetition time is not one of the expected values.
-        """
-        if repetition_time == 'MANUAL' or repetition_time == 'ONCE_A_WEEK':
-            # Not sure how to handle this case so we'll treat this the same
-            # as 'ONCE_A_WEEK' for now.
-            return tt_models.WeeklyRepetitionSchedule(schedule=0b1)
-        elif repetition_time == 'FIRST_AND_THIRD_WEEK':
-            return tt_models.WeeklyRepetitionSchedule(schedule=0b101)
-        elif repetition_time == 'SECOND_AND_FOURTH_WEEK':
-            return tt_models.WeeklyRepetitionSchedule(schedule=0b0101)
-        else:
-            raise ValueError(
-                f'Encountered unexpected repetition time: "{repetition_time}"')
+        return course  # type: ignore
 
     def _process_institution(self, name: str, institution_type: str,
                              code: Optional[str] = None,
@@ -420,27 +291,471 @@ class TimetableDataset(SessionalDataset):
 
         Raise a ValueError if the session could not be found.
         """
-        raise NotImplementedError()
+        # TODO: Remove this method in a future version since it is deprecated
+        raise DeprecationWarning(
+            'Automatic session detection is deprecated and will be removed in '
+            'a future version. Sessions must now be explicitly specified in '
+            'the initializer of this class. Use the `session` or `sessions` '
+            'arguments.'
+        )
 
-    @staticmethod
-    def _yes_no_to_bool(value: str) -> bool:
-        """Convert a 'Y' or 'N' string to a boolean.
 
-        Raise a ValueError if the value could not be converted.
+def _yes_no_to_bool(value: str) -> bool:
+    """Convert a 'Y' or 'N' string to a boolean.
 
-        Examples:
-            >>> TimetableDataset._yes_no_to_bool('Y')
-            True
-            >>> TimetableDataset._yes_no_to_bool('N')
-            False
-            >>> TimetableDataset._yes_no_to_bool('X')
-            Traceback (most recent call last):
-            ...
-            ValueError: Could not convert X to a boolean.
+    Raise a ValueError if the value could not be converted.
+
+    Examples:
+        >>> TimetableDataset._yes_no_to_bool('Y')
+        True
+        >>> TimetableDataset._yes_no_to_bool('N')
+        False
+        >>> TimetableDataset._yes_no_to_bool('X')
+        Traceback (most recent call last):
+        ...
+        ValueError: Could not convert X to a boolean.
+    """
+    if value == 'Y':
+        return True
+    elif value == 'N':
+        return False
+    else:
+        raise ValueError(f'Could not convert {value} to a boolean.')
+
+
+class TtbBuildingSchema(Schema):
+    """A marshmallow schema for a building returned by the TTB API."""
+
+    class Meta:
+        """The meta class for the TtbCourseSchema."""
+
+        ordered = True
+        unknown = EXCLUDE
+
+    code = fields.String(required=True, data_key='buildingCode')
+    name = fields.String(allow_none=True, data_key='buildingName')
+    map_url = fields.String(allow_none=True, data_key='buildingUrl')
+    room_number = fields.String(required=True,
+                                data_key='buildingRoomNumber')
+    room_suffix = fields.String(allow_none=True,
+                                missing='',
+                                data_key='buildingRoomSuffix')
+
+
+class TtbSectionMeetingSchema(Schema):
+    """A marshmallow schema for a section meeting returned by the TTB API."""
+
+    class Meta:
+        """The meta class for the TtbCourseSchema."""
+
+        ordered = True
+        unknown = EXCLUDE
+
+    day = fields.Integer(required=True,
+                         validate=lambda value: 0 <= value <= 6)
+    start_time = fields.Integer(required=True,
+                                validate=lambda value: 0 <= value <= 86400000)
+    end_time = fields.Integer(required=True,
+                              validate=lambda value: 0 <= value <= 86400000)
+    session = fields.String(required=True, data_key='sessionCode')
+    building = fields.Nested(TtbBuildingSchema, allow_none=True,
+                             missing=None, data_key='building')
+    repetition_time = fields.String(allow_none=True, missing=None,
+                                    data_key='repetitionTime')
+
+    @pre_load
+    def process_data(self, data: dict, **kwargs: Any) -> dict:
+        """Process the data before it is loaded.
+
+        Args:
+            data: The data to process.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            The processed data.
         """
-        if value == 'Y':
-            return True
-        elif value == 'N':
-            return False
+        start, end = data['start'], data['end']
+        if start['day'] != end['day']:
+            logger.warn(
+                f'The section meeting {data} has a start and end '
+                f'on different days. This is not currently supported, so '
+                f'the end day will be used.'
+            )
+
+        data['day'] = end['day'] - 1  # Convert from 1-indexed to 0-indexed
+        data['start_time'] = start['millisofday']
+        data['end_time'] = end['millisofday']
+
+        return data
+
+    @post_load
+    def make_meeting(self, data: dict, **kwargs: Any) \
+            -> tt_models.SectionMeeting:
+        """Create a SectionMeeting object from the data.
+
+        Args:
+            data: The data to use to create the SectionMeeting object.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            A SectionMeeting object.
+        """
+        # Process the repetition time into a RepetitionSchedule object
+        #
+        # The repetition time is a string that describes how a section meeting
+        # is repeated on a weekly basis. It is one of the following:
+        #
+        # - 'MANUAL': The meeting is not repeated on a weekly basis.
+        # - 'ONCE_A_WEEK': The meeting is repeated once a week.
+        # - 'FIRST_AND_THIRD_WEEK': In a 3-week cycle, the meeting is repeated
+        #     on the first and third weeks.
+        # - 'SECOND_AND_FOURTH_WEEK': In a 4-week cycle, the meeting is repeated
+        #     on the second and fourth weeks.
+        repetition_time = data.pop('repetition_time')
+        if repetition_time == 'MANUAL' or repetition_time == 'ONCE_A_WEEK':
+            # Not sure how to handle this case so we'll treat this the same
+            # as 'ONCE_A_WEEK' for now.
+            rs = tt_models.WeeklyRepetitionSchedule(schedule=0b1)
+        elif repetition_time == 'FIRST_AND_THIRD_WEEK':
+            rs = tt_models.WeeklyRepetitionSchedule(schedule=0b101)
+        elif repetition_time == 'SECOND_AND_FOURTH_WEEK':
+            rs = tt_models.WeeklyRepetitionSchedule(schedule=0b0101)
         else:
-            raise ValueError(f'Could not convert {value} to a boolean.')
+            raise ValueError(
+                f'Encountered unexpected repetition time: "{repetition_time}"')
+
+        building = data.pop('building')
+        location = Location(
+            building=Building(
+                code=building['code'],
+                institution=None,  # This is populated later (by the dataset)
+                name=building['name'],
+                map_url=building['map_url']
+            ),
+            room=''.join([building['room_number'],
+                          building['room_suffix'] or ''])
+        ) if building else None
+
+        session = tt_models.Session.from_code(data.pop('session'))
+        return tt_models.SectionMeeting(
+            **data,
+            session=session,
+            location=location,
+            repetition_schedule=rs
+        )
+
+
+class TtbInstructorSchema(Schema):
+    """A marshmallow schema for an instructor returned by the TTB API."""
+
+    first_name = fields.String(required=True, data_key='firstName')
+    last_name = fields.String(required=True, data_key='lastName')
+
+    @post_load
+    def make_instructor(self, data: dict, **kwargs: Any) \
+            -> tt_models.Instructor:
+        """Create an Instructor object from the data.
+
+        Args:
+            data: The data to use to create the Instructor object.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            An Instructor object.
+        """
+        return tt_models.Instructor(**data)
+
+
+def _get_notes(obj: dict) ->list[str]:
+    """Get the notes field from the object.
+
+    Args:
+        obj: The object to get the notes field from.
+
+    Returns:
+        A list of notes. If the notes field is not present, an empty list
+        is returned instead.
+    """
+    return [note['content'] for note in obj.get('notes', [])
+            if note.get('content')]
+
+
+def _get_cancelled(obj: dict) -> Optional[bool]:
+    """Get the cancelled field from the object.
+
+    Args:
+        obj: The object to get the cancelled field from.
+
+    Returns:
+        A boolean indicating whether the course is cancelled. If the
+        cancelled field is not present, None is returned instead.
+    """
+    # The cancelled field is not always present in the data. Default
+    # to False ('N') if it is not present
+    return nullable_convert(obj.get('cancelled', 'N'), _yes_no_to_bool)
+
+
+class TtbSectionSchema(Schema):
+    """A marshmallow schema for a section returned by the TTB API."""
+
+    class Meta:
+        """The meta class for the TtbCourseSchema."""
+
+        ordered = True
+        unknown = EXCLUDE
+
+    teaching_method = fields.Enum(tt_models.TeachingMethod, required=True,
+                                  data_key='teachMethod', by_value=True)
+    section_number = fields.String(required=True, data_key='sectionNumber')
+    meetings = fields.Nested(TtbSectionMeetingSchema, many=True, required=True,
+                             data_key='meetingTimes')
+    instructors = fields.Nested(TtbInstructorSchema, many=True, required=True)
+    # Process each delivery mode into a SectionDeliveryMode object
+    # The list should be the same length as the number of sessions
+    # that the course is offered in. Each delivery mode is associated
+    # with a session, so the delivery modes should be in the same
+    # order as the sessions.
+    delivery_modes = fields.List(
+        fields.Enum(tt_models.SectionDeliveryMode, by_value=True),
+        required=True,
+        data_key='deliveryModes'
+    )
+    subtitle = fields.String(allow_none=True, missing=None)
+    cancelled = fields.Function(lambda obj: _get_cancelled(obj), missing=False)
+    current_enrolment = fields.Integer(
+        allow_none=True, data_key='currentEnrolment')
+    max_enrolment = fields.Integer(allow_none=True, data_key='maxEnrolment')
+    has_waitlist = fields.Function(
+        lambda obj: _yes_no_to_bool(obj.get('waitlistInd', 'N')), missing=False)
+    current_waitlist_size = fields.Integer(
+        allow_none=True, data_key='currentWaitlist', missing=None)
+    enrolment_indicator = fields.Function(
+        lambda obj: obj.get('enrolmentIndicator') or None, missing=None)
+    notes = fields.Function(lambda obj: _get_notes(obj), missing=[])
+    # TODO: Proper handling of linked sections
+    # For now, we just store them as strings but we'll want to formalize
+    # the relationship between sections in the future.
+    linked_sections = fields.Method('get_linked_sections', missing=[])
+
+    def get_linked_sections(self, obj: dict) -> list[str]:
+        """Get the linked sections from the object.
+
+        Args:
+            obj: The object to get the linked sections from.
+
+        Returns:
+            A list of linked sections. If the linked sections field is not
+            present, an empty list is returned instead.
+        """
+        return [
+            f'{ls["teachMethod"]} {ls["sectionNumber"]}'
+            for ls in obj.get('linkedSections', [])
+        ]
+
+    @pre_load
+    def process_data(self, data: dict, **kwargs: Any) -> dict:
+        """Process the data before it is deserialized.
+
+        Args:
+            data: The data to process.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            The processed data.
+        """
+        # Get a unique identifier for the section to use in logging
+        section_id = f'{data["teachMethod"]} {data["sectionNumber"]}'
+
+        # Ensure that every delivery mode is a valid value
+        # If it is not, log a warning and default to IN_PERSON
+        delivery_modes = data['deliveryModes']
+        data['deliveryModes'] = []
+        for d in delivery_modes:
+            mode = d['mode']
+            if mode not in tt_models.SectionDeliveryMode._value2member_map_:
+                logger.warn(
+                    f'The section {section_id} has an invalid '
+                    f'delivery mode ({mode}). Defaulting to INPER (In Person).')
+                mode = tt_models.SectionDeliveryMode.IN_PERSON.value
+
+            data['deliveryModes'].append(mode)
+
+        return data
+
+    @post_load
+    def make_section(self, data: dict, **kwargs: Any) -> tt_models.Section:
+        """Create a Section object from the data.
+
+        Args:
+            data: The data to use to create the Section object.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            A Section object.
+        """
+        # Process the enrolment info into an EnrolmentInfo object
+        enrolment_info = tt_models.EnrolmentInfo(
+            current_enrolment=data.pop('current_enrolment', None),
+            max_enrolment=data.pop('max_enrolment', None),
+            has_waitlist=data.pop('has_waitlist', False),
+            current_waitlist_size=data.pop('current_waitlist_size', None),
+            enrolment_indicator=data.pop('enrolment_indicator', None),
+        )
+
+        return tt_models.Section(
+            **data,
+            enrolment_info=enrolment_info,
+        )
+
+
+class TtbCourseMetadataSchema(Schema):
+    """A marshmallow schema for course metadata (cmCourseInfo) returned by the TTB API."""
+
+    description = fields.String(allow_none=True)
+    prerequisites = fields.String(allow_none=True, data_key='prerequisitesText')
+    corequisites = fields.String(allow_none=True, data_key='corequisitesText')
+    exclusions = fields.String(allow_none=True, data_key='exclusionsText')
+    recommended_preparation = fields.String(allow_none=True,
+                                            data_key='recommendedPreparation')
+    tags = fields.Method('get_tags')
+    instruction_level = fields.Enum(tt_models.InstructionLevel,
+                                    required=True,
+                                    by_value=True,
+                                    data_key='levelOfInstruction')
+
+    class Meta:
+        """The meta class for the TtbCourseSchema."""
+
+        ordered = True
+        unknown = EXCLUDE
+
+    def get_tags(self, obj: dict) -> list[str]:
+        """Get the tags from the object.
+
+        Args:
+            obj: The object to get the tags from.
+
+        Returns:
+            A list of tags. If the tags field is not present, an empty list
+            is returned instead.
+        """
+        return [
+            d['section'] for d in (obj.get('cmPublicationSections') or [])
+            if d.get('section') is not None
+        ]
+
+    @pre_load
+    def process_data(self, data: dict, **kwargs: Any) -> dict:
+        """Process the data before it is deserialized.
+
+        Args:
+            data: The data to process.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            The processed data.
+        """
+        # Perform a sanity check to ensure that the instruction level is valid
+        # If it is not, log a warning and default to UNDERGRADUATE
+        level = data.get('levelOfInstruction', 'undergraduate')
+        if level not in tt_models.InstructionLevel._value2member_map_:
+            logger.warn(
+                f'Encountered an invalid instruction level: '
+                f'{level}. Defaulting to UNDERGRADUATE.'
+            )
+            level = tt_models.InstructionLevel.UNDERGRADUATE.value
+
+        data['levelOfInstruction'] = level
+
+        return data
+
+
+class TtbCourseSchema(Schema):
+    """A marshmallow schema for a course returned by the TTB API."""
+
+    class Meta:
+        """The meta class for the TtbCourseSchema."""
+
+        ordered = True
+        unknown = EXCLUDE
+
+    id = fields.String(required=True)
+    code = fields.String(required=True)
+    name = fields.String(required=True)
+    sections = fields.Nested(TtbSectionSchema, many=True, required=True)
+    sessions = fields.List(fields.String(), required=True)
+    term = fields.Enum(tt_models.Term, required=True, by_value=True,
+                       data_key='sectionCode')
+    credits = fields.Float(required=True, data_key='maxCredit')
+    campus_name = fields.String(required=True, data_key='campus')
+    cm_course_info = fields.Nested(TtbCourseMetadataSchema,
+                                   data_key='cmCourseInfo',
+                                   missing={},
+                                   allow_none=True)
+    title = fields.String(allow_none=True)
+    cancelled = fields.Function(lambda obj: _get_cancelled(obj))
+    notes = fields.Function(lambda obj: _get_notes(obj))
+
+    @pre_load
+    def process_data(self, data: dict, **kwargs) -> dict:
+        """Process the data before loading it into the schema.
+
+        Args:
+            data: The data to process.
+
+        Returns:
+            The processed data.
+        """
+        # Get a unique identifier string for the course to use in logging
+        course_id = f'{data["code"]}, {data["name"]} ({data["id"]})'
+
+        # Ensure that the term is valid. If it's not, log a warning and
+        # default to FIRST_SEMESTER
+        try:
+            tt_models.Term(data['sectionCode'])
+        except ValueError:
+            logger.warn(
+                f'The course {course_id} has an invalid term code '
+                f'({data["sectionCode"]}). Defaulting to FIRST_SEMESTER.'
+            )
+            data['sectionCode'] = tt_models.Term.FIRST_SEMESTER.value
+
+        data['minCredit'] = data.get('minCredit') or 0
+        data['maxCredit'] = data.get('maxCredit') or 0
+
+        # We currently only support courses with the same max and min credits.
+        # If the max and min credits are different, log a warning so that we
+        # can fix it later and use the max credits in the meantime
+        if data['maxCredit'] != data['minCredit']:
+            max_credits, min_credits = data['maxCredit'], data['minCredit']
+            logger.warn(
+                f'The course {course_id} has different max and min '
+                f'credits ({max_credits} and {min_credits}, respectively). '
+                f'This is not currently supported, so the max credits will '
+                f'be used instead.'
+            )
+
+        data['cmCourseInfo'] = data.get('cmCourseInfo') or {}
+        return data
+
+    @post_load
+    def make_course(self, data: dict, **kwargs) -> tt_models.Course:
+        """Create a course from the data.
+
+        Args:
+            data: The data to create the course from.
+
+        Returns:
+            The course.
+        """
+        data.pop('campus_name')
+
+        cm_course_info = data.pop('cm_course_info')
+        sessions = [tt_models.Session.from_code(s) for s in data.pop('sessions')]
+        return tt_models.Course(
+            **data,
+            sessions=sessions,
+            instruction_level=cm_course_info.pop('instruction_level'),
+            institution=None,  # This is populated later (by the dataset)
+            **cm_course_info
+        )
