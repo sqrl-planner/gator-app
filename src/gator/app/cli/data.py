@@ -87,22 +87,12 @@ def get_datasets(pattern: str = typer.Option('*'),
         _cleanup()
 
 
-@ensure_record_storage
-@app.command('sync')
-def sync_records(bucket_id: Optional[str] = typer.Argument(None),
-                 force: bool = typer.Option(False, '--force', '-f'),
-                 verbose: bool = typer.Option(False, '--verbose', '-v')) \
-        -> None:  # noqa: C901
-    """Sync records from a record storage bucket to the database.
-
-    Only new or updated records will be synced. Records that have been deleted
-    from the bucket will not be deleted from the database.
+def _use_bucket_or_latest(bucket_id: Optional[str]) -> str:
+    """Get the bucket ID to use, either the provided one or the latest.
 
     Args:
-        bucket_id: The ID of the bucket to sync. If not provided, the latest
-            bucket will be used.
-        force: Force sync of all records, even if they have not been updated.
-        verbose: Enable verbose output.
+        bucket_id: The bucket ID to use. If None, the latest bucket will be
+            used.
     """
     if bucket_id is None:
         buckets = [
@@ -113,15 +103,27 @@ def sync_records(bucket_id: Optional[str] = typer.Argument(None),
             typer.echo('No buckets found.')
             raise typer.Exit(1)
 
-        bucket_id = sorted(buckets, key=lambda x: x[1], reverse=True)[0][0]
-        typer.echo(f'Using latest bucket with ID: {bucket_id}')
-    else:
-        typer.echo(f'Using bucket with ID: {bucket_id}')
+        latest_id = sorted(buckets, key=lambda x: x[1], reverse=True)[0][0]
+        typer.echo(f'Using latest bucket with ID: {latest_id}')
+        return latest_id
 
-    if not record_storage.bucket_exists(bucket_id):
-        typer.echo(f'Bucket with ID {bucket_id} does not exist.')
-        raise typer.Exit(1)
+    typer.echo(f'Using bucket with ID: {bucket_id}')
+    return bucket_id
 
+
+def _sync_records_in_bucket(bucket_id: str, force: bool, verbose: bool) \
+        -> dict:
+    """Sync records from a bucket to the database.
+
+    Args:
+        bucket_id: The ID of the bucket to sync.
+        force: Force sync records, even if they already exist.
+        verbose: Enable verbose output.
+
+    Returns:
+        A dictionary of status frequencies (i.e. the number of records
+        that were created, updated, or skipped).
+    """
     typer.echo()
     status_freq = dict(created=0, updated=0, skipped=0)
     with logging_redirect_tqdm(),\
@@ -159,6 +161,32 @@ def sync_records(bucket_id: Optional[str] = typer.Argument(None),
 
             pbar.update(1)
 
+    return status_freq
+
+
+@ensure_record_storage
+@app.command('sync')
+def sync_records(bucket_id: Optional[str] = typer.Argument(None),
+                 force: bool = typer.Option(False, '--force', '-f'),
+                 verbose: bool = typer.Option(False, '--verbose', '-v')) \
+        -> None:
+    """Sync records from a record storage bucket to the database.
+
+    Only new or updated records will be synced. Records that have been deleted
+    from the bucket will not be deleted from the database.
+
+    Args:
+        bucket_id: The ID of the bucket to sync. If not provided, the latest
+            bucket will be used.
+        force: Force sync of all records, even if they have not been updated.
+        verbose: Enable verbose output.
+    """
+    bucket_id = _use_bucket_or_latest(bucket_id)
+    if not record_storage.bucket_exists(bucket_id):
+        typer.echo(f'Bucket with ID {bucket_id} does not exist.')
+        raise typer.Exit(1)
+
+    status_freq = _sync_records_in_bucket(bucket_id, force, verbose)
     num_records_processed = sum(status_freq.values())
 
     typer.echo()
