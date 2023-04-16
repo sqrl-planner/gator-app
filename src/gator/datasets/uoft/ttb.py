@@ -328,7 +328,7 @@ class TtbBuildingSchema(Schema):
     room_number = fields.String(required=True,
                                 data_key='buildingRoomNumber')
     room_suffix = fields.String(allow_none=True,
-                                missing='',
+                                load_default='',
                                 data_key='buildingRoomSuffix')
 
 
@@ -349,8 +349,8 @@ class TtbSectionMeetingSchema(Schema):
                               validate=lambda value: 0 <= value <= 86400000)
     session = fields.String(required=True, data_key='sessionCode')
     building = fields.Nested(TtbBuildingSchema, allow_none=True,
-                             missing=None, data_key='building')
-    repetition_time = fields.String(allow_none=True, missing=None,
+                             load_default=None, data_key='building')
+    repetition_time = fields.String(allow_none=True, load_default=None,
                                     data_key='repetitionTime')
 
     @pre_load
@@ -510,22 +510,24 @@ class TtbSectionSchema(Schema):
         required=True,
         data_key='deliveryModes'
     )
-    subtitle = fields.String(allow_none=True, missing=None)
-    cancelled = fields.Function(lambda obj: _get_cancelled(obj), missing=False)
+    subtitle = fields.String(allow_none=True, load_default=None)
+    cancelled = fields.Function(lambda obj: _get_cancelled(obj),
+                                load_default=False)
     current_enrolment = fields.Integer(
         allow_none=True, data_key='currentEnrolment')
     max_enrolment = fields.Integer(allow_none=True, data_key='maxEnrolment')
     has_waitlist = fields.Function(
-        lambda obj: _yes_no_to_bool(obj.get('waitlistInd', 'N')), missing=False)
+        lambda obj: _yes_no_to_bool(obj.get('waitlistInd', 'N')),
+        load_default=False)
     current_waitlist_size = fields.Integer(
-        allow_none=True, data_key='currentWaitlist', missing=None)
+        allow_none=True, data_key='currentWaitlist', load_default=None)
     enrolment_indicator = fields.Function(
-        lambda obj: obj.get('enrolmentIndicator') or None, missing=None)
-    notes = fields.Function(lambda obj: _get_notes(obj), missing=[])
+        lambda obj: obj.get('enrolmentIndicator') or None, load_default=None)
+    notes = fields.Function(lambda obj: _get_notes(obj), load_default=[])
     # TODO: Proper handling of linked sections
     # For now, we just store them as strings but we'll want to formalize
     # the relationship between sections in the future.
-    linked_sections = fields.Method('get_linked_sections', missing=[])
+    linked_sections = fields.Method('get_linked_sections', load_default=[])
 
     def get_linked_sections(self, obj: dict) -> list[str]:
         """Get the linked sections from the object.
@@ -680,7 +682,7 @@ class TtbCourseSchema(Schema):
     campus_name = fields.String(required=True, data_key='campus')
     cm_course_info = fields.Nested(TtbCourseMetadataSchema,
                                    data_key='cmCourseInfo',
-                                   missing={},
+                                   load_default={},
                                    allow_none=True)
     title = fields.String(allow_none=True)
     cancelled = fields.Function(lambda obj: _get_cancelled(obj))
