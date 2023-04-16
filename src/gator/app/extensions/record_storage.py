@@ -1,7 +1,8 @@
 """Record storage extension."""
-from typing import Optional, Any, Type
+from typing import Any, Optional, Type
 
 from flask import Flask
+
 import gator.app.storage as storage
 
 

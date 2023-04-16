@@ -1,22 +1,20 @@
 """Data-related functions for the CLI."""
 import signal
 import textwrap
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 
 import typer
-from tqdm import tqdm
-from tabulate import tabulate
-from yaspin import Spinner, yaspin
-from tqdm.contrib.logging import logging_redirect_tqdm
-
 from gator.core.data.utils.hash import make_hash_sha256
+from tabulate import tabulate
+from tqdm import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
+from yaspin import Spinner, yaspin
 
-from gator.app.models import ProcessedRecord
 from gator.app.cli.storage import ensure_record_storage
 from gator.app.extensions.dataset_registry import dataset_registry
 from gator.app.extensions.record_storage import record_storage
-
+from gator.app.models import ProcessedRecord
 
 app = typer.Typer()
 DATASET_SLUG_SEPARATOR = '__'   # Separator between dataset slug and record id
@@ -128,7 +126,7 @@ def sync_records(bucket_id: Optional[str] = typer.Argument(None),
     typer.echo()
     status_freq = dict(created=0, updated=0, skipped=0)
     with logging_redirect_tqdm(),\
-        tqdm(desc=f'Syncing records', ncols=80) as pbar:
+            tqdm(desc=f'Syncing records', ncols=80) as pbar:
 
         for full_id, data in record_storage.records_iter(bucket_id):
             try:
@@ -169,7 +167,7 @@ def sync_records(bucket_id: Optional[str] = typer.Argument(None),
     # Print status summary
     if len(status_freq) > 0:
         typer.echo(', '.join([f'{value} {key}'
-                                for key, value in status_freq.items()]))
+                              for key, value in status_freq.items()]))
 
     # Print a newline between datasets
     typer.echo()
@@ -186,6 +184,6 @@ def repos_list() -> None:
             '\n'.join(textwrap.wrap(dataset.name)),
             '\n'.join(textwrap.wrap(dataset.description or ''))
         ]
-    )
+        )
 
     print(tabulate(rows, headers=headers, tablefmt='plain'))

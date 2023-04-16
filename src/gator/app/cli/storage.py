@@ -6,6 +6,7 @@ from typing import Callable, Optional
 
 import typer
 from tabulate import tabulate
+
 from gator.app.extensions.record_storage import record_storage
 
 app = typer.Typer()

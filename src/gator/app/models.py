@@ -1,6 +1,6 @@
 """Models for gator-app."""
-from typing import Any
 from datetime import datetime
+from typing import Any
 
 from mongoengine import Document, fields
 
@@ -60,4 +60,3 @@ class ProcessedRecord(Document):
         else:
             # Skip the record
             return 'skipped'
-
