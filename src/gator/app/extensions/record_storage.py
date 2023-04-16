@@ -1,5 +1,5 @@
 """Record storage extension."""
-from typing import Any, Optional, Type
+from typing import Any, Optional
 
 from flask import Flask
 

@@ -1,7 +1,7 @@
 """Data-related functions for the CLI."""
+# ignore: C901
 import signal
 import textwrap
-from datetime import datetime
 from typing import Optional
 
 import typer
@@ -74,7 +74,7 @@ def get_datasets(pattern: str = typer.Option('*'),
         records = {(slug + DATASET_SLUG_SEPARATOR + record_id): data
                    for slug, all_records in records.items()
                    for record_id, data in all_records.items()}
-        with tqdm(total=len(records), desc=f'Saving records', ncols=80) as pbar:
+        with tqdm(total=len(records), desc='Saving records', ncols=80) as pbar:
             bucket_id = record_storage.create_bucket()
             for record_id, data in records.items():
                 record_storage.set_record(bucket_id, record_id, data)
@@ -126,7 +126,7 @@ def sync_records(bucket_id: Optional[str] = typer.Argument(None),
     typer.echo()
     status_freq = dict(created=0, updated=0, skipped=0)
     with logging_redirect_tqdm(),\
-            tqdm(desc=f'Syncing records', ncols=80) as pbar:
+            tqdm(desc='Syncing records', ncols=80) as pbar:
 
         for full_id, data in record_storage.records_iter(bucket_id):
             try:

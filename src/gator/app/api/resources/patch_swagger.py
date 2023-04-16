@@ -1,6 +1,4 @@
 """Patch flask-accepts to support additional Marshmallow fields."""
-import json
-
 from flask_accepts import utils
 from flask_restx import fields as fr
 from gator._vendor.marshmallow_mongoengine.fields import Reference
