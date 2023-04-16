@@ -223,7 +223,7 @@ class TimetableDataset(SessionalDataset):
         course = schema.load(data)  # type: ignore
         course.institution = institution  # type: ignore
 
-        # Propogate the campus institution to all buildings under the course
+        # Propagate the campus institution to all buildings under the course
         for section in course.sections:  # type: ignore
             for meeting in section.meetings:
                 if meeting.location is not None:
