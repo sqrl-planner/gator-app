@@ -1,5 +1,4 @@
 """Data-related functions for the CLI."""
-# ignore: C901
 import signal
 import textwrap
 from typing import Optional
@@ -93,7 +92,7 @@ def get_datasets(pattern: str = typer.Option('*'),
 def sync_records(bucket_id: Optional[str] = typer.Argument(None),
                  force: bool = typer.Option(False, '--force', '-f'),
                  verbose: bool = typer.Option(False, '--verbose', '-v')) \
-        -> None:
+        -> None:  # noqa: C901
     """Sync records from a record storage bucket to the database.
 
     Only new or updated records will be synced. Records that have been deleted
