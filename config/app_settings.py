@@ -3,6 +3,7 @@ import os
 from typing import Optional, Union
 
 from gator.core.models.timetable import Session
+
 from gator.datasets.uoft import TimetableDataset
 
 
