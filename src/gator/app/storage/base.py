@@ -1,4 +1,5 @@
 """Base interface for all record storage backends."""
+import time
 import uuid
 from abc import ABC, abstractmethod
 from typing import Iterator, Optional
@@ -41,6 +42,20 @@ class BucketExistsError(Exception):
         super().__init__(f'Bucket {bucket_id} already exists')
 
 
+class BucketReservedError(Exception):
+    """Raised when a bucket ID is reserved."""
+
+    def __init__(self, bucket_id: str, operation: str) -> None:
+        """Initialize the exception.
+
+        Args:
+            bucket_id: The ID of the bucket that is reserved.
+            operation: The operation that was attempted.
+        """
+        operation = operation.upper()
+        super().__init__(f'Cannot {operation} reserved bucket {bucket_id}')
+
+
 class RecordExistsError(Exception):
     """Raised when a record already exists in storage."""
 
@@ -63,6 +78,8 @@ class BaseRecordStorage(ABC):
     All subclasses must implement the following public abstract methods:
         - `get_buckets() -> set[str]`: Return a set of all bucket IDs in
             arbitrary order.
+        - `num_records(bucket_id: str) -> int`: Return the number of records
+            in a bucket.
         - `bucket_exists(bucket_id: str) -> bool`: Check if a bucket exists.
         - `record_exists(bucket_id: str, record_id: str) -> bool`: Check if a
             record exists in a bucket.
@@ -89,6 +106,26 @@ class BaseRecordStorage(ABC):
             record exists.
     """
 
+    # Private Class Attributes:
+    #   -  _METADATA_BUCKET_ID: A reserved bucket ID that is used to store
+    #           metadata about the storage backend. This bucket is not exposed
+    #           to the user and is used internally by the storage backend. It
+    #           cannot be overwritten, deleted, cleared, or modified in any way.
+    _METADATA_BUCKET_ID = '__metadata__'
+
+    # Private Instance Attributes:
+    #   - _reserved_bucket_ids: A set of bucket IDs that are reserved by the
+    #       storage backend and cannot be overwritten, deleted, cleared, or
+    #       modified in any way.
+    _reserved_bucket_ids = {_METADATA_BUCKET_ID}
+
+    def __init__(self) -> None:
+        """Initialize the storage backend."""
+        super().__init__()
+        if not self.bucket_exists(self._METADATA_BUCKET_ID):
+            self._bucket_create(self._METADATA_BUCKET_ID)
+            self._record_set(self._METADATA_BUCKET_ID, 'buckets', {})
+
     def create_bucket(self, bucket_id: Optional[str] = None) -> str:
         """Create a new bucket.
 
@@ -100,8 +137,12 @@ class BaseRecordStorage(ABC):
             str: The ID of the bucket that was created.
 
         Raises:
+            BucketReservedError: If the bucket is reserved.
             BucketExistsError: If a bucket with the given ID already exists.
         """
+        if bucket_id in self._reserved_bucket_ids:
+            raise BucketReservedError(bucket_id, 'create')
+
         if bucket_id is None:
             bucket_id = self._gen_bucket_id()
 
@@ -109,6 +150,18 @@ class BaseRecordStorage(ABC):
             raise BucketExistsError(bucket_id)
 
         self._bucket_create(bucket_id)
+
+        # Add the bucket to the metadata record
+        if bucket_id != self._METADATA_BUCKET_ID:
+            bucket_metadata = self._record_get(self._METADATA_BUCKET_ID,
+                                               'buckets')
+            bucket_metadata[bucket_id] = {
+                'id': bucket_id,
+                'created_at': time.time(),
+            }
+            self._record_set(self._METADATA_BUCKET_ID, 'buckets',
+                             bucket_metadata, overwrite=True)
+
         return bucket_id
 
     def delete_bucket(self, bucket_id: str) -> None:
@@ -121,16 +174,47 @@ class BaseRecordStorage(ABC):
             True if the bucket was deleted and False otherwise.
 
         Raises:
+            BucketReservedError: If the bucket is reserved.
             BucketNotFoundError: If the bucket does not exist.
         """
+        if bucket_id in self._reserved_bucket_ids:
+            raise BucketReservedError(bucket_id, 'delete')
+
         if not self.bucket_exists(bucket_id):
             raise BucketNotFoundError(bucket_id)
 
         self._bucket_delete(bucket_id)
 
+        # Erase the bucket from the metadata record
+        if bucket_id != self._METADATA_BUCKET_ID:
+            bucket_metadata = self._record_get(self._METADATA_BUCKET_ID,
+                                               'buckets')
+            del bucket_metadata[bucket_id]
+            self._record_set(self._METADATA_BUCKET_ID, 'buckets',
+                             bucket_metadata, overwrite=True)
+
     @abstractmethod
     def get_buckets(self) -> set[str]:
-        """Return a set of all bucket IDs in arbitrary order."""
+        """Return a set of all bucket IDs in arbitrary order.
+
+        This should return a set of all bucket IDs in the storage backend,
+        except for the reserved bucket IDs.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def num_records(self, bucket_id: str) -> int:
+        """Return the number of records in a bucket.
+
+        Args:
+            bucket_id: The ID of the bucket to count.
+
+        Returns:
+            int: The number of records in the bucket.
+
+        Raises:
+            BucketNotFoundError: If the bucket does not exist.
+        """
         raise NotImplementedError
 
     def delete_all_buckets(self) -> None:
@@ -150,8 +234,12 @@ class BaseRecordStorage(ABC):
             bucket_id: The ID of the bucket to clear.
 
         Raises:
+            ReservedBucketError: If the bucket is reserved.
             BucketNotFoundError: If the bucket does not exist.
         """
+        if bucket_id in self._reserved_bucket_ids:
+            raise BucketReservedError(bucket_id, 'clear')
+
         if not self.bucket_exists(bucket_id):
             raise BucketNotFoundError(bucket_id)
 
@@ -168,9 +256,13 @@ class BaseRecordStorage(ABC):
             The record with the given ID from the given bucket.
 
         Raises:
+            BucketReservedError: If the bucket is reserved.
             BucketNotFoundError: If the bucket does not exist.
             RecordNotFoundError: If the record does not exist.
         """
+        if bucket_id in self._reserved_bucket_ids:
+            raise BucketReservedError(bucket_id, 'get')
+
         if not self.bucket_exists(bucket_id):
             raise BucketNotFoundError(bucket_id)
 
@@ -190,8 +282,12 @@ class BaseRecordStorage(ABC):
             bucket. The records are yielded in an arbitrary order.
 
         Raises:
+            BucketReservedError: If the bucket is reserved.
             BucketNotFoundError: If the bucket does not exist.
         """
+        if bucket_id in self._reserved_bucket_ids:
+            raise BucketReservedError(bucket_id, 'iterate')
+
         if not self.bucket_exists(bucket_id):
             raise BucketNotFoundError(bucket_id)
 
@@ -228,11 +324,15 @@ class BaseRecordStorage(ABC):
                 does not exist.
 
         Raises:
+            BucketReservedError: If the bucket is reserved.
             BucketNotFoundError: If the bucket does not exist and
                 `auto_create` is False.
             RecordExistsError: If the record already exists and
                 `overwrite` is False.
         """
+        if bucket_id in self._reserved_bucket_ids:
+            raise BucketReservedError(bucket_id, 'set')
+
         if not self.bucket_exists(bucket_id):
             if auto_create:
                 self.create_bucket(bucket_id)
@@ -252,9 +352,13 @@ class BaseRecordStorage(ABC):
             record_id: The ID of the record to delete.
 
         Raises:
+            BucketReservedError: If the bucket is reserved.
             BucketNotFoundError: If the bucket does not exist.
             RecordNotFoundError: If the record does not exist.
         """
+        if bucket_id in self._reserved_bucket_ids:
+            raise BucketReservedError(bucket_id, 'delete')
+
         if not self.bucket_exists(bucket_id):
             raise BucketNotFoundError(bucket_id)
 
@@ -262,6 +366,25 @@ class BaseRecordStorage(ABC):
             raise RecordNotFoundError(bucket_id, record_id)
 
         self._record_delete(bucket_id, record_id)
+
+    @property
+    def metadata(self) -> dict:
+        """Get the metadata for this storage backend.
+
+        Returns:
+            The metadata for this storage backend. At a minimum, this
+            is a dictionary with the following keys:
+
+            - `buckets`: A dictionary mapping bucket IDs to bucket
+                metadata (containing information such as the bucket's
+                creation time)
+            - `reserved_bucket_ids`: A list of bucket IDs that are
+                reserved for internal use.
+        """
+        return {
+            'buckets': self._record_get(self._METADATA_BUCKET_ID, 'buckets'),
+            'reserved_bucket_ids': self._reserved_bucket_ids
+        }
 
     @abstractmethod
     def bucket_exists(self, bucket_id: str) -> bool:
