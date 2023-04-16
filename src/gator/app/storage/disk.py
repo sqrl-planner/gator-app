@@ -7,7 +7,7 @@ from typing import Iterator, Union
 
 import msgpack
 
-from gator.app.storage.base import BaseRecordStorage
+from gator.app.storage.base import BaseRecordStorage, BucketNotFoundError
 
 
 class FileRecordStorage(BaseRecordStorage):
@@ -37,7 +37,25 @@ class FileRecordStorage(BaseRecordStorage):
 
     def get_buckets(self) -> set[str]:
         """Return a set of all bucket IDs in arbitrary order."""
-        return set(os.listdir(self._root_dir))
+        return set(os.listdir(self._root_dir)) - self._reserved_bucket_ids
+
+    def num_records(self, bucket_id: str) -> int:
+        """Return the number of records in a bucket.
+
+        Args:
+            bucket_id: The ID of the bucket to count.
+
+        Returns:
+            int: The number of records in the bucket.
+
+        Raises:
+            BucketNotFoundError: If the bucket does not exist.
+        """
+        if not self.bucket_exists(bucket_id):
+            raise BucketNotFoundError(bucket_id)
+
+        bucket_dir = self._get_bucket_dir(bucket_id)
+        return sum(1 for _ in bucket_dir.iterdir())
 
     def bucket_exists(self, bucket_id: str) -> bool:
         """Check if a bucket exists.

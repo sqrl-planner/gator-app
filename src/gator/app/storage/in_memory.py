@@ -1,7 +1,7 @@
 """In-memory record storage backends."""
 from typing import Iterator
 
-from gator.app.storage.base import BaseRecordStorage
+from gator.app.storage.base import BaseRecordStorage, BucketNotFoundError
 
 
 class DictRecordStorage(BaseRecordStorage):
@@ -28,7 +28,24 @@ class DictRecordStorage(BaseRecordStorage):
 
     def get_buckets(self) -> set[str]:
         """Return a set of all bucket IDs in arbitrary order."""
-        return set(self._buckets.keys())
+        return set(self._buckets.keys()) - self._reserved_bucket_ids
+
+    def num_records(self, bucket_id: str) -> int:
+        """Return the number of records in a bucket.
+
+        Args:
+            bucket_id: The ID of the bucket to count.
+
+        Returns:
+            int: The number of records in the bucket.
+
+        Raises:
+            BucketNotFoundError: If the bucket does not exist.
+        """
+        if not self.bucket_exists(bucket_id):
+            raise BucketNotFoundError(bucket_id)
+
+        return len(self._buckets[bucket_id])
 
     def bucket_exists(self, bucket_id: str) -> bool:
         """Check if a bucket exists.

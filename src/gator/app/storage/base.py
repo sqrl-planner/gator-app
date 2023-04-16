@@ -78,6 +78,8 @@ class BaseRecordStorage(ABC):
     All subclasses must implement the following public abstract methods:
         - `get_buckets() -> set[str]`: Return a set of all bucket IDs in
             arbitrary order.
+        - `num_records(bucket_id: str) -> int`: Return the number of records
+            in a bucket.
         - `bucket_exists(bucket_id: str) -> bool`: Check if a bucket exists.
         - `record_exists(bucket_id: str, record_id: str) -> bool`: Check if a
             record exists in a bucket.
@@ -197,6 +199,21 @@ class BaseRecordStorage(ABC):
 
         This should return a set of all bucket IDs in the storage backend,
         except for the reserved bucket IDs.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def num_records(self, bucket_id: str) -> int:
+        """Return the number of records in a bucket.
+
+        Args:
+            bucket_id: The ID of the bucket to count.
+
+        Returns:
+            int: The number of records in the bucket.
+
+        Raises:
+            BucketNotFoundError: If the bucket does not exist.
         """
         raise NotImplementedError
 

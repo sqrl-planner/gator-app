@@ -10,24 +10,19 @@ from tabulate import tabulate
 from yaspin import Spinner, yaspin
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from gator.app.models import ProcessedRecord
 from gator.core.data.utils.hash import make_hash_sha256
+
+from gator.app.models import ProcessedRecord
+from gator.app.cli.storage import ensure_record_storage
 from gator.app.extensions.dataset_registry import dataset_registry
 from gator.app.extensions.record_storage import record_storage
+
 
 app = typer.Typer()
 DATASET_SLUG_SEPARATOR = '__'   # Separator between dataset slug and record id
 
 
-def _ensure_record_storage(func):
-    """Ensure that record storage is initialized."""
-    def wrapper(*args, **kwargs):
-        assert record_storage is not None, 'Record storage is not initialized.'
-        return func(*args, **kwargs)
-    return wrapper
-
-
-@_ensure_record_storage
+@ensure_record_storage
 @app.command('get')
 def get_datasets(pattern: str = typer.Option('*'),
                  verbose: bool = typer.Option(False, '--verbose', '-v'),
@@ -95,7 +90,7 @@ def get_datasets(pattern: str = typer.Option('*'),
         _cleanup()
 
 
-@_ensure_record_storage
+@ensure_record_storage
 @app.command('sync')
 def sync_records(bucket_id: Optional[str] = typer.Argument(None),
                  force: bool = typer.Option(False, '--force', '-f'),
