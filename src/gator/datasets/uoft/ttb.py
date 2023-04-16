@@ -7,7 +7,6 @@ Arts & Science, Engineering, etc.).
 
 The API can be accessed at https://api.easi.utoronto.ca/ttb/.
 """
-import logging
 import re
 from typing import Any, Iterator, Optional
 
@@ -17,8 +16,6 @@ from gator.core.data.utils.serialization import nullable_convert
 from gator.core.models.institution import Building, Institution, Location
 from marshmallow import EXCLUDE, Schema, fields, post_load, pre_load
 from requests import request
-
-logger = logging.getLogger(__name__)
 
 
 class TimetableDataset(SessionalDataset):
@@ -109,7 +106,7 @@ class TimetableDataset(SessionalDataset):
     @property
     def name(self) -> str:
         """Return the name for the dataset."""
-        return 'Timetable Builder Data ({})'.format(
+        return 'TTB data: {}'.format(
             ', '.join(s.human_str for s in self._sessions_sorted))
 
     @property
@@ -175,8 +172,8 @@ class TimetableDataset(SessionalDataset):
                     sessions = '_'.join(course['sessions'])
                     full_id = f'{course["code"]}-{course["sectionCode"]}-{sessions}'
                 except KeyError as e:
-                    logger.warn(
-                        f'Could not fetch key {e} while processing '
+                    print(
+                        f'WARNING: Could not fetch key {e} while processing '
                         f'course {course}. Skipping...'
                     )
                     continue
@@ -197,13 +194,6 @@ class TimetableDataset(SessionalDataset):
         """
         # Set the id for the course
         data['id'] = id
-
-        # Add course id to the logger so we know which course is being processed
-        global logger
-        logger = logging.LoggerAdapter(
-            logger,
-            {'course_id': id}
-        )
 
         # Generate the institution hierarchy from the data
         campus_name = data['campus']
@@ -375,8 +365,8 @@ class TtbSectionMeetingSchema(Schema):
         """
         start, end = data['start'], data['end']
         if start['day'] != end['day']:
-            logger.warn(
-                f'The section meeting {data} has a start and end '
+            print(
+                f'WARNING: The section meeting {data} has a start and end '
                 f'on different days. This is not currently supported, so '
                 f'the end day will be used.'
             )
@@ -572,8 +562,8 @@ class TtbSectionSchema(Schema):
         for d in delivery_modes:
             mode = d['mode']
             if mode not in tt_models.SectionDeliveryMode._value2member_map_:
-                logger.warn(
-                    f'The section {section_id} has an invalid '
+                print(
+                    f'WARNING: The section {section_id} has an invalid '
                     f'delivery mode ({mode}). Defaulting to INPER (In Person).')
                 mode = tt_models.SectionDeliveryMode.IN_PERSON.value
 
@@ -658,8 +648,8 @@ class TtbCourseMetadataSchema(Schema):
         # If it is not, log a warning and default to UNDERGRADUATE
         level = data.get('levelOfInstruction', 'undergraduate')
         if level not in tt_models.InstructionLevel._value2member_map_:
-            logger.warn(
-                f'Encountered an invalid instruction level: '
+            print(
+                f'WARNING: Encountered an invalid instruction level: '
                 f'{level}. Defaulting to UNDERGRADUATE.'
             )
             level = tt_models.InstructionLevel.UNDERGRADUATE.value
@@ -713,8 +703,8 @@ class TtbCourseSchema(Schema):
         try:
             tt_models.Term(data['sectionCode'])
         except ValueError:
-            logger.warn(
-                f'The course {course_id} has an invalid term code '
+            print(
+                f'WARNING: The course {course_id} has an invalid term code '
                 f'({data["sectionCode"]}). Defaulting to FIRST_SEMESTER.'
             )
             data['sectionCode'] = tt_models.Term.FIRST_SEMESTER.value
@@ -727,8 +717,8 @@ class TtbCourseSchema(Schema):
         # can fix it later and use the max credits in the meantime
         if data['maxCredit'] != data['minCredit']:
             max_credits, min_credits = data['maxCredit'], data['minCredit']
-            logger.warn(
-                f'The course {course_id} has different max and min '
+            print(
+                f'WARNING: The course {course_id} has different max and min '
                 f'credits ({max_credits} and {min_credits}, respectively). '
                 f'This is not currently supported, so the max credits will '
                 f'be used instead.'

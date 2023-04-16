@@ -33,6 +33,7 @@ class FileRecordStorage(BaseRecordStorage):
             root_dir: The root directory to store the buckets in.
         """
         self._root_dir = Path(root_dir)
+        super().__init__()
 
     def get_buckets(self) -> set[str]:
         """Return a set of all bucket IDs in arbitrary order."""

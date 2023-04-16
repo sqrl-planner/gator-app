@@ -23,8 +23,8 @@ def create_app(settings_override: Any = None) -> Flask:
     init_middleware(app)
 
     # Register extensions with the app
-    import gator.app.extensions.record_storage as record_storage
     from gator.app.extensions.db import db
+    from gator.app.extensions.record_storage import record_storage
     db.init_app(app)
     record_storage.init_app(app)
 

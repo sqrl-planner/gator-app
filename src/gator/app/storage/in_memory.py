@@ -24,6 +24,7 @@ class DictRecordStorage(BaseRecordStorage):
     def __init__(self) -> None:
         """Initialize the storage."""
         self._buckets = {}
+        super().__init__()
 
     def get_buckets(self) -> set[str]:
         """Return a set of all bucket IDs in arbitrary order."""

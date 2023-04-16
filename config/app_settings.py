@@ -24,19 +24,7 @@ DATASETS = [
         Session(2022, 'regular', 'first'),  # Fall 2022 (F)
         Session(2023, 'regular', 'second'),  # Winter 2023 (S)
         Session(2022, 'regular', 'whole'),  # Fall 2022 - Winter 2023 (Y)
-    ]),
-    # 2022 Summer
-    TimetableDataset(sessions=[
-        Session(2022, 'summer', 'first'),  # Summer 2022 First Subsession (F)
-        Session(2022, 'summer', 'second'),  # Summer 2022 Second Subsession (S)
-        Session(2022, 'summer', 'whole')  # Summer 2022 Whole Session (Y)
-    ]),
-    # 2021 Fall - 2022 Winter
-    TimetableDataset(sessions=[
-        Session(2021, 'regular', 'first'),  # Fall 2021 (F)
-        Session(2022, 'regular', 'second'),  # Winter 2022 (S)
-        Session(2021, 'regular', 'whole'),  # Fall 2021 - Winter 2022 (Y)
-    ]),
+    ])
 ]
 
 # Record storage configuration
