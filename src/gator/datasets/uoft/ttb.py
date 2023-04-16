@@ -31,6 +31,7 @@ class TimetableDataset(SessionalDataset):
         ROOT_URL: The url for the timetable builder (TTB) homepage.
         API_URL: The root url for the timetable builder (TTB) API.
     """
+
     ROOT_URL: str = 'https://ttb.utoronto.ca/'
     API_URL: str = 'https://api.easi.utoronto.ca/ttb/getPageableCourses/'
 

@@ -8,6 +8,7 @@ import gator.app.storage as storage
 
 class FlaskRecordStorage():
     """A thin wrapper around the record storage extension for use with Flask."""
+
     app: Optional[Flask] = None
     record_storage: Optional[storage.BaseRecordStorage] = None
 
