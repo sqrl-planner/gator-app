@@ -295,11 +295,11 @@ def _yes_no_to_bool(value: str) -> bool:
     Raise a ValueError if the value could not be converted.
 
     Examples:
-        >>> TimetableDataset._yes_no_to_bool('Y')
+        >>> _yes_no_to_bool('Y')
         True
-        >>> TimetableDataset._yes_no_to_bool('N')
+        >>> _yes_no_to_bool('N')
         False
-        >>> TimetableDataset._yes_no_to_bool('X')
+        >>> _yes_no_to_bool('X')
         Traceback (most recent call last):
         ...
         ValueError: Could not convert X to a boolean.
