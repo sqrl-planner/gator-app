@@ -52,11 +52,11 @@ Alterntively, you can run an instance locally or use a number of database provid
 
 You'll need to retrieve timetable information to use gator. Start by pulling the latest data from all monitored datasets by running the following command:
 ```shell
-docker-compose run web "poetry run gator data get"
+docker-compose run web poetry run gator data get
 ```
 This will retrieve the latest data and save it to a new bucket in record storage. Then, run
 ```shell
-docker-compose run web "poetry run gator data sync"
+docker-compose run web poetry run gator data sync
 ```
 to sync the data to MongoDB. You can optionally specify a `bucket_id` to the sync command if you'd like to sync data from an older bucket.
 
