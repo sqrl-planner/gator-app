@@ -50,7 +50,7 @@ Alterntively, you can run an instance locally or use a number of database provid
 
 #### Pulling and syncing data
 
-If your database is empty, you'll need timetable information to use gator. Start by pulling the latest data from all monitored repos by running the following command:
+You'll need to retrieve timetable information to use gator. Start by pulling the latest data from all monitored datasets by running the following command:
 ```shell
 docker-compose run web "poetry run gator data get"
 ```
