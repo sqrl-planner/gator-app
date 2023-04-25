@@ -1,7 +1,7 @@
 """Models for gator-app."""
 from queue import Queue
 from datetime import datetime
-from typing import Optional, Any
+from typing import Any
 
 from mongoengine import Document, fields
 from mongoengine.base import BaseDocument, BaseField
@@ -10,7 +10,7 @@ from gator.core.data.utils.hash import make_hash_sha256
 
 
 def cascade_save(doc: BaseDocument, max_depth: int = -1) -> None:
-    """Saves a document and all savable fields recursively.
+    """Save a document and all savable fields recursively.
 
     This will recursively search for all Document attributes with a `save`
     method and save them. For example, a reference field within a document
