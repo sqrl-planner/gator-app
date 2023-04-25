@@ -68,36 +68,3 @@ For more information on this command and the data CLI, see the [data cli](/docs/
 
 ## Native Development Environment
 If you prefer to work natively, rather than bootstrapping the application in a Docker container, see the [native development workflow](docs/develop-native.md) docs for setup instructions.
-
-## Workflow Tools
-We use [pre-commit](https://pre-commit.com/) to automatically run the following tasks when you commit to your repository.
-
-#### Linting the codebase
-For detecting code quality and style issues, run
-```
-flake8
-```
-For checking compliance with Python docstring conventions, run
-```
-pydocstyle
-```
-
-**NOTE**: these tools will not fix any issues, but they can help you identify potential problems.
-
-
-#### Formatting the codebase
-For automatically formatting the codebase, run
-```
-autopep8 --in-place --recursive .
-```
-For more information on this command, see the [autopep8](https://pypi.python.org/pypi/autopep8) documentation.
-
-For automatically sorting imports, run
-```
-isort .
-```
-
-#### Running tests
-````
-pytest
-````
