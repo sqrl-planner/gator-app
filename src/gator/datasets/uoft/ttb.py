@@ -420,11 +420,11 @@ class TtbSectionMeetingSchema(Schema):
                 code=building['code'],
                 institution=None,  # This is populated later (by the dataset)
                 name=building['name'],
-                map_url=building['map_url']
+                map_url=building['map_url'] or None
             ),
             room=''.join([building['room_number'],
                           building['room_suffix'] or ''])
-        ) if building else None
+        ) if building and building['code'] else None
 
         session = tt_models.Session.from_code(data.pop('session'))
         return tt_models.SectionMeeting(
