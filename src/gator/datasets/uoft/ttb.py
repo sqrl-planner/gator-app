@@ -569,6 +569,8 @@ class TtbSectionSchema(Schema):
                     f'WARNING: The section {section_id} has an invalid '
                     f'delivery mode ({mode}). Defaulting to INPER (In Person).')
                 mode = tt_models.SectionDeliveryMode.IN_PERSON.value
+            else:
+                mode = tt_models.SectionDeliveryMode(mode)
 
             data['deliveryModes'].append(mode)
 

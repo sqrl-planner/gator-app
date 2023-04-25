@@ -82,7 +82,7 @@ def get_datasets(pattern: str = typer.Option('*'),
         typer.echo()
         typer.echo(f'Saved records to bucket with ID: {bucket_id}')
         typer.echo(
-            f'Use \'gator record list {bucket_id}\' to view the records.')
+            f'Use \'gator storage describe bucket {bucket_id}\' to view the bucket.')
     except Exception:  # pylint: disable=broad-except
         _cleanup()
 
