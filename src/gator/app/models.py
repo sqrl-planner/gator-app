@@ -1,12 +1,11 @@
 """Models for gator-app."""
-from queue import Queue
 from datetime import datetime
+from queue import Queue
 from typing import Any
 
+from gator.core.data.utils.hash import make_hash_sha256
 from mongoengine import Document, fields
 from mongoengine.base import BaseDocument, BaseField
-
-from gator.core.data.utils.hash import make_hash_sha256
 
 
 def cascade_save(doc: BaseDocument, max_depth: int = -1) -> None:
