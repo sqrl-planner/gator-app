@@ -24,7 +24,6 @@ def cascade_save(doc: BaseDocument, max_depth: int = -1) -> None:
         max_depth: The maximum depth to recurse to. A value of -1 means no
             limit.
     """
-
     q = Queue()
     q.put((doc, 0))
 
