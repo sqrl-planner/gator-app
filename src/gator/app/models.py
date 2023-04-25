@@ -9,7 +9,7 @@ from mongoengine.base import BaseDocument, BaseField
 
 
 def cascade_save(doc: BaseDocument, max_depth: int = -1) -> None:
-    """Save a document and all savable fields recursively.
+    """Save a document and all saveable fields recursively.
 
     This will recursively search for all Document attributes with a `save`
     method and save them. For example, a reference field within a document
