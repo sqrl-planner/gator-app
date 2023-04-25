@@ -1,5 +1,5 @@
 # type: ignore
-"""Course related endpoints."""
+"""An API namespace for performing operations on the Course model."""
 from urllib.parse import unquote_plus
 
 from flask import request

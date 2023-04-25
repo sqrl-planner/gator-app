@@ -35,7 +35,10 @@ setuptools = "^65.6.3"
 gunicorn = "^20.1.0"
 marshmallow = "<4"
 flask-accepts = "^0.18.4"
-gator-core = "^1.2.2"
+gator-core = "2.0.0"
+msgpack = "^1.0.5"
+mongoengine = "0.27.0"
+ipython = "^8.12.0"
 
 [tool.poetry.dev-dependencies]
 python-dotenv = "^0.20.0"
@@ -47,6 +50,9 @@ pytest-httpserver = "^1.0.4"
 
 [tool.poetry.scripts]
 gator = "gator.app.cli:app"
+
+[tool.poetry.group.dev.dependencies]
+pyfakefs = "^5.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -64,3 +70,6 @@ enableTypeIgnoreComments = true
 
 # This is required as the CI pre-commit does not download required modules
 reportMissingImports = "none"
+
+[tool.codespell]
+skip = "./tests/**/*,./poetry.lock"

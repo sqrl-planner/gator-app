@@ -382,3 +382,6 @@ cython_debug/
 
 # R&D files
 searching/
+
+# Record storage
+/data/

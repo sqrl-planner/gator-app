@@ -2,10 +2,12 @@
 import typer
 
 import gator.app.cli.data as data_cli
+import gator.app.cli.storage as storage_cli
 from gator.app import create_app
 
 app = typer.Typer()
 app.add_typer(data_cli.app, name='data')
+app.add_typer(storage_cli.app, name='storage')
 
 
 @app.callback(invoke_without_command=True)

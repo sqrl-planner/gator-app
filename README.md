@@ -16,15 +16,19 @@ You'll need to have [Docker installed](https://docs.docker.com/get-docker/).
 
 #### Clone this repo and move into the directory
 ```shell
-git clone https://github.com/sqrl-planner/gator.git
-cd gator
+git clone https://github.com/sqrl-planner/gator-app.git
+cd gator-app
 ```
 
 #### Copy starter files
 ```shell
 cp .env.example .env
 ```
-The defaults are for running in *development* mode. Go through each variable in the file and make sure it is properly set. You will likely need to update the credentials.
+The defaults are for running in *development* mode. Go through each variable in the file and make sure it is properly set. You will likely need to update the credentials. Once the file is updated, run
+```shell
+source .env
+```
+to load the environment variables into your shell. This is important as the Makefile and Docker Compose commands rely on these variables.
 
 #### Build the Docker image and start the Docker container
 
@@ -32,13 +36,15 @@ You start the Docker container by running
 
 *The first time you run this, it's going to take 5-10 minutes depending on your internet connection and hardware.*
 ```shell
-docker-compose up
+make dev.up
 ```
-This will build the image, if needed, and once built, automatically spin up a container with the image. If you'd like to force a rebuild of the image, you may additionally pass an optional ``--build`` flag to the above command.
+This will build the image, if needed, and once built, automatically spin up a container with the image. If you'd like to force a rebuild of the image, you may additionally pass an optional ``c="--build"`` argument to the command.
+
+You might be prompted to create a Docker network. This is used to allow communication between the various microservices in a local env (i.e. `gator-app`, `sqrl-server`, etc...). If so, create the network and then try running docker compose again.
 
 #### Stopping the Docker container
 
-You can stop running the container by running ``docker-compose down``.
+You can stop running the container by running ``make dev.down``, which will stop the container and remove it. If you'd like to stop the container without removing it, you can run ``make dev.stop``. To remove everything, including the volumes, run ``make dev.destroy``.
 
 #### Setting up the database
 
@@ -48,23 +54,20 @@ Alterntively, you can run an instance locally or use a number of database provid
 
 #### Pulling and syncing data
 
-If your database is empty, you'll need timetable information to use gator. To pull the latest data from all monitored repos, in the Docker container run
+You'll need to retrieve timetable information to use gator. Start by pulling the latest data from all monitored datasets by running the following command:
 ```shell
-gator data pull
+make dev.exec cmd="gator data pull"
 ```
-or outside the Docker container, run
+This will retrieve the latest data and save it to a new bucket in record storage. Then, run
 ```shell
-docker-compose run web gator data pull
+make dev.exec cmd="gator data sync"
 ```
+to sync the data to MongoDB. You can optionally specify a `bucket_id` to the sync command if you'd like to sync data from an older bucket.
 
 For more information on this command and the data CLI, see the [data cli](/docs/data_cli.md) documentation.
 
-### Automating data syncing
-
-The Docker container will automatically sync the data on the first-run. You might find it useful to setup a cron job to periodically run this job in production.
-
 ## Native Development Environment
-If you prefer to work natively, rather than bootstraping the application in a Docker container, see the [native development workflow](docs/develop-native.md) docs for setup instructions.
+If you prefer to work natively, rather than bootstrapping the application in a Docker container, see the [native development workflow](docs/develop-native.md) docs for setup instructions.
 
 ## Workflow Tools
 We use [pre-commit](https://pre-commit.com/) to automatically run the following tasks when you commit to your repository.
