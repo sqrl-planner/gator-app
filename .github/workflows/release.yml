@@ -19,6 +19,15 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install poetry and set the version
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry version $(git describe --tags --abbrev=0)
       -
         name: Docker meta
         id: meta

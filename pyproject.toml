@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gator-app"
-version = "0.1.0"
+version = "0.0.0"  # placeholder for the real version, which is retrieved from git tags
 description = " A CLI and web API for centralized dataset aggregation and content management"
 authors = ["Shon Verch <verchshon@gmail.com>"]
 license = "MIT"
