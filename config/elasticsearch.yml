@@ -1,0 +1,13 @@
+# Elasticsearch cluster information. Must be used in production even if running
+# on a single-node.
+# See https://www.elastic.co/guide/en/elasticsearch/reference/current/add-elasticsearch-nodes.html
+# for more information on configuring this.
+# cluster.initial_master_nodes: ...
+# discovery.seed_hosts: ...
+# Avoids the production check. Disable this in production.
+discovery.type: single-node
+
+# Should Elasticsearch security features be enabled?
+# This is recommend in production
+xpack.security.enabled: false
+# xpack.security.enabled: true

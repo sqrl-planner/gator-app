@@ -24,8 +24,10 @@ def create_app(settings_override: Any = None) -> Flask:
 
     # Register extensions with the app
     from gator.app.extensions.db import db
+    from gator.app.extensions.elasticsearch import es
     from gator.app.extensions.record_storage import record_storage
     db.init_app(app)
+    es.init_app(app)
     record_storage.init_app(app)
 
     # Register api with the app

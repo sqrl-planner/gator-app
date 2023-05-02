@@ -90,6 +90,10 @@ MONGODB_SETTINGS = {
     'authentication_source': os.getenv('MONGODB_AUTH_SOURCE', None),
 }
 
+# Elasticsearch configuration
+ELASTICSEARCH_URL = os.getenv('ELASTICSEARCH_URL', 'http://localhost:9200')
+ELASTICSEARCH_TIMEOUT = int(os.getenv('ELASTICSEARCH_TIMEOUT', 10))
+
 # API configuration
 API_DOCS_URL = os.getenv('API_DOCS_URL', None)
 
