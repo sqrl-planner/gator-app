@@ -1,8 +1,9 @@
 """Elasticsearch extension."""
-from typing import Optional, Any
+from typing import Any, Optional
 
-from flask import Flask
 from elasticsearch import Elasticsearch
+from flask import Flask
+
 
 class FlaskElasticsearch:
     """Thin wrapper around the Elasticsearch client to allow for configuration through
