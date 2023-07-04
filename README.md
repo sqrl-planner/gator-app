@@ -56,7 +56,7 @@ Alterntively, you can run an instance locally or use a number of database provid
 
 You'll need to retrieve timetable information to use gator. Start by pulling the latest data from all monitored datasets by running the following command:
 ```shell
-make dev.exec cmd="gator data pull"
+make dev.exec cmd="gator data get"
 ```
 This will retrieve the latest data and save it to a new bucket in record storage. Then, run
 ```shell

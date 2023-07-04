@@ -67,11 +67,17 @@ DATASETS = [
         Session(2023, 'summer', 'second'),  # Summer 2023 Second Subsession (S)
         Session(2023, 'summer', 'whole')  # Summer 2023 Whole Session (Y)
     ]),
-    # 2022 Fall - 2023 Winter
+    # # 2022 Fall - 2023 Winter
+    # TimetableDataset(sessions=[
+    #     Session(2022, 'regular', 'first'),  # Fall 2022 (F)
+    #     Session(2023, 'regular', 'second'),  # Winter 2023 (S)
+    #     Session(2022, 'regular', 'whole'),  # Fall 2022 - Winter 2023 (Y)
+    # ])
+    # 2023 Fall - 2024 Winter
     TimetableDataset(sessions=[
-        Session(2022, 'regular', 'first'),  # Fall 2022 (F)
-        Session(2023, 'regular', 'second'),  # Winter 2023 (S)
-        Session(2022, 'regular', 'whole'),  # Fall 2022 - Winter 2023 (Y)
+        Session(2023, 'regular', 'first'),  # Fall 2023 (F)
+        Session(2024, 'regular', 'second'),  # Winter 2024 (S)
+        Session(2023, 'regular', 'whole'),  # Fall 2023 - Winter 2024 (Y)
     ])
 ]
 
