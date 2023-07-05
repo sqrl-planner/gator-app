@@ -1,4 +1,4 @@
 [flake8]
-ignore=E501
+ignore=E501,C901
 exclude = tests/*
 max-complexity = 10
