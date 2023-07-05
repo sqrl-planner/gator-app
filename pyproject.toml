@@ -72,4 +72,5 @@ enableTypeIgnoreComments = true
 reportMissingImports = "none"
 
 [tool.codespell]
-skip = "./tests/**/*,./poetry.lock"
+quiet-level = 2
+skip = "poetry.lock,./.git/*,./tests/*"
