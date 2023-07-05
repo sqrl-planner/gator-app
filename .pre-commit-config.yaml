@@ -7,6 +7,7 @@ repos:
     rev: v2.2.5
     hooks:
       - id: codespell
+        exclude: ^(tests/|poetry\.lock|\.git/)
   - repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
     hooks:
