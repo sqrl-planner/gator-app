@@ -36,55 +36,78 @@ def get_datasets(pattern: str = typer.Option('*'),
         verbose: Enable verbose output.
         yes: Skip confirmation prompt.
     """
+    bucket_id = None
+
     def _cleanup() -> None:
         """Cleanup the operation on failure."""
-        if record_storage.bucket_exists(bucket_id):
+        nonlocal bucket_id
+        typer.echo()
+
+        if bucket_id is None:
+            typer.echo('Operation interrupted or failed. No data saved.')
+        elif record_storage.bucket_exists(bucket_id):
             record_storage.delete_bucket(bucket_id)
             typer.echo(f'Operation interrupted or failed. Deleted bucket '
                        f'with ID: {bucket_id}')
+        else:
+            typer.echo(f'Operation interrupted or failed. No data saved. '
+                       f'Bucket with ID: {bucket_id} does not exist.')
+
         raise typer.Exit(1)
 
     # Hook into SIGINT and SIGTERM to cleanup on interrupt/kill
     signal.signal(signal.SIGINT, lambda *_: _cleanup())
     signal.signal(signal.SIGTERM, lambda *_: _cleanup())
 
-    try:
-        records = {}  # type: dict[str, dict[str, dict]]
-        datasets = list(dataset_registry.filter(pattern))
-        for dataset in datasets:
-            with yaspin(Spinner('-\\|/', 150), timer=True,
-                        text=f'Fetching {dataset.slug}...') as spinner:
-                records[dataset.slug] = {}
+    records = {}  # type: dict[str, dict[str, dict]]
+    total_records = 0
+
+    datasets = list(dataset_registry.filter(pattern))
+
+    # Print all the datasets that will be fetched
+    typer.echo()
+    typer.echo('The following datasets will be fetched:')
+    for dataset in datasets:
+        typer.echo(f'\t{dataset.slug}')
+    typer.echo()
+
+    for dataset in datasets:
+        with yaspin(Spinner('-\\|/', 150), timer=True,
+                    text=f'Fetching {dataset.slug}...') as spinner:
+            records[dataset.slug] = {}
+            try:
                 for record_id, data in dataset.get():
+                    total_records += 1
                     records[dataset.slug][record_id] = data
                     if verbose:
                         spinner.write(f'\tFETCHED {dataset.slug}/{record_id}')
-
+            except Exception as e:  # pylint: disable=broad-except
+                spinner.text = f'Error fetching {dataset.slug}: {e}'
+                spinner.fail('❌')
+            else:
                 spinner.text = (
                     f'Fetched {len(records[dataset.slug])} records '
                     f'from {dataset.slug}.')
-                spinner.ok('✔')
+                spinner.ok('✅')
 
-        typer.echo()
-        if not yes and not typer.confirm('Save to record storage?'):
-            return
+    typer.echo()
+    if total_records == 0 or (not yes and not typer.confirm('Save to record storage?')):
+        return
 
-        # Flatten the records
-        records = {(slug + DATASET_SLUG_SEPARATOR + record_id): data
-                   for slug, all_records in records.items()
-                   for record_id, data in all_records.items()}
-        with tqdm(total=len(records), desc='Saving records', ncols=80) as pbar:
-            bucket_id = record_storage.create_bucket()
-            for record_id, data in records.items():
-                record_storage.set_record(bucket_id, record_id, data)
-                pbar.update(1)
+    # Flatten the records
+    records = {(slug + DATASET_SLUG_SEPARATOR + record_id): data
+                for slug, all_records in records.items()
+                for record_id, data in all_records.items()}
+    with tqdm(total=len(records), desc='Saving records', ncols=80) as pbar:
+        bucket_id = record_storage.create_bucket()
+        for record_id, data in records.items():
+            record_storage.set_record(bucket_id, record_id, data)
+            pbar.update(1)
 
-        typer.echo()
-        typer.echo(f'Saved records to bucket with ID: {bucket_id}')
-        typer.echo(
-            f'Use \'gator storage describe bucket {bucket_id}\' to view the bucket.')
-    except Exception:  # pylint: disable=broad-except
-        _cleanup()
+    typer.echo()
+    typer.echo(f'Saved records to bucket with ID: {bucket_id}')
+    typer.echo(
+        f'Use \'gator storage describe bucket {bucket_id}\' to view the bucket.')
 
 
 def _use_bucket_or_latest(bucket_id: Optional[str]) -> str:
