@@ -7,6 +7,8 @@ repos:
     rev: v2.2.5
     hooks:
       - id: codespell
+        args:
+          - --skip ./tests/**/*,./poetry.lock,./pyproject.toml,./.pre-commit-config.yaml
   - repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
     hooks:
