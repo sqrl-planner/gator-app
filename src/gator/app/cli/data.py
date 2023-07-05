@@ -96,8 +96,8 @@ def get_datasets(pattern: str = typer.Option('*'),
 
     # Flatten the records
     records = {(slug + DATASET_SLUG_SEPARATOR + record_id): data
-                for slug, all_records in records.items()
-                for record_id, data in all_records.items()}
+               for slug, all_records in records.items()
+               for record_id, data in all_records.items()}
     with tqdm(total=len(records), desc='Saving records', ncols=80) as pbar:
         bucket_id = record_storage.create_bucket()
         for record_id, data in records.items():
