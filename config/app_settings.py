@@ -14,7 +14,7 @@ def get_mongodb_credential(credential_type: str,
     Will first check the environment variable `MONGODB_{credential_type}`,
     and if that is not set, will check `MONGODB_INITDB_ROOT_{credential_type}`.
     """
-    assert credential_type in {'username', 'password'},\
+    assert credential_type in {'username', 'password'}, \
         'credential_type must be either "username" or "password"'
 
     credential_type = credential_type.upper()
