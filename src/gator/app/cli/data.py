@@ -149,7 +149,7 @@ def _sync_records_in_bucket(bucket_id: str, force: bool, verbose: bool) \
     """
     typer.echo()
     status_freq = dict(created=0, updated=0, skipped=0)
-    with logging_redirect_tqdm(),\
+    with logging_redirect_tqdm(), \
             tqdm(desc='Syncing records', ncols=80) as pbar:
 
         for full_id, data in record_storage.records_iter(bucket_id):
